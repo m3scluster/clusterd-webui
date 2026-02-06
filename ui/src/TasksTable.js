@@ -16,31 +16,29 @@ import { FormatTimeDifference, StateBadge, HealthBadge } from "./libs/functions"
 import "./App.css";
 
 export default function TasksTable({tasks, title}) {
-  const data = tasks
+  const data = tasks;
+  const [openRows, setOpenRows] = useState({}); // Zustand pro Task-ID
+
+  const toggleRow = (id) => {
+    setOpenRows(prev => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
   const Row = ({row}) =>  {
-    const [open, setOpen] = useState(false);  
+    const open = !!openRows[row.id];
 
     return (
         <React.Fragment>
-            <TableRow
-              key={row.id}
-              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-            >
-
-             <TableCell>
-               <IconButton
-                 aria-label="expand row"
-                 size="small"
-                 onClick={() => setOpen(!open)}
-               >
+            <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+              <TableCell>
+                <IconButton aria-label="expand row" size="small" onClick={() => toggleRow(row.id)}>
                  {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                </IconButton>
-             </TableCell>
-              <TableCell>{row.framework_id}</TableCell>
-              <TableCell component="th" scope="row">
-                {row.id}
               </TableCell>
+              <TableCell>{row.framework_id}</TableCell>
+              <TableCell component="th" scope="row">{row.id}</TableCell>
               <TableCell>{row.name}</TableCell>
               <TableCell>{row.role ?? []}</TableCell>
               <TableCell><StateBadge state={row.state} /></TableCell>
