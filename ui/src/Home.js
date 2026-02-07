@@ -7,6 +7,7 @@ const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [authHeader, setAuthHeader] = useState(null);
+  const [baseUrl, setBaseUrl] = useState("https://172.30.96.0:5050");
 
   const login = (username, password) => {
     const header = "Basic " + btoa(`${username}:${password}`);
@@ -14,7 +15,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ authHeader, login }}>
+    <AuthContext.Provider value={{ authHeader, login, baseUrl, setBaseUrl }}>
       {children}
     </AuthContext.Provider>
   );
@@ -31,7 +32,7 @@ export default function Home() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [data, setData] = useState(null);
-  const { authHeader, login } = useAuth();
+  const { authHeader, login, baseUrl, setBaseUrl } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,7 +41,7 @@ export default function Home() {
     login(username, password);
 
     try {
-      const response = await fetch("https://172.30.96.0:5050/slaves", {
+      const response = await fetch(`${baseUrl}/slaves`, {
         method: "GET",
         headers: {
           Authorization: "Basic " + btoa(`${username}:${password}`),
@@ -61,6 +62,14 @@ export default function Home() {
       </Typography>
 
       <form onSubmit={handleSubmit}>
+        <TextField
+          label="ClusterD URL"
+          value={baseUrl}
+          onChange={(e) => setBaseUrl(e.target.value)}
+          fullWidth
+          margin="normal"
+          placeholder="https://172.30.96.0:5050"
+        />
         <TextField
           label="Username"
           value={username}

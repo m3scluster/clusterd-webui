@@ -1,18 +1,18 @@
 import { Box } from '@mui/material';
 import { useState, useEffect } from 'react';
 import AgentsTable from './AgentsTable.js';
-import { useAuth } from "../../Home"
+import { useAuth, baseUrl } from "../../Home"
 
 export default function Data(props: DataProps) {
   const [loading, setLoading] = useState(false);  
   const [agents, setAgents] = useState([]);
-	const { authHeader } = useAuth();
+	const { authHeader, baseUrl } = useAuth();
 
   // Function to get Apache Mesos Agents
   const getMesosAgents = async () => {
     setLoading(true);
 
-    const response = await fetch("https://172.30.96.0:5050/slaves",
+    const response = await fetch(`${baseUrl}/slaves`,
       {
         method: "GET",
         headers: {

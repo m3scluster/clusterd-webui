@@ -1,18 +1,19 @@
 import { Box } from "@mui/material";
-import { useAuth } from "../../Home";
+import { useAuth, baseUrl } from "../../Home";
 import TasksTable from "./TasksTable";
+import { useState } from 'react';
 import { FormatTimeDifference } from "../../libs/functions";
 import { QueryClient, QueryClientProvider, useQuery} from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
 
-const useMesosTasks = (authHeader?: string) => {
+const useMesosTasks = (authHeader?: string, baseUrl?: string) => {
   return useQuery({
     queryKey: ["mesosTasks", authHeader],
     enabled: !!authHeader,
     queryFn: async () => {
       const resp = await fetch(
-        "https://172.30.96.0:5050/frameworks?order=dsc&limit=-1",
+        `${baseUrl}/frameworks?order=dsc&limit=-1`,
         {
           headers: { Authorization: authHeader },
         }
@@ -31,8 +32,8 @@ const useMesosTasks = (authHeader?: string) => {
 };
 
 function DataInner() {
-  const { authHeader } = useAuth();
-  const { data, isLoading, isFetching, error } = useMesosTasks(authHeader);
+  const { authHeader, baseUrl } = useAuth();
+  const { data, isLoading, isFetching, error } = useMesosTasks(authHeader, baseUrl);
 
   const frameworks = data?.frameworks ?? [];
   const tasks = frameworks.flatMap((f: any) => f.tasks ?? []);
