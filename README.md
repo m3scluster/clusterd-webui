@@ -57,7 +57,9 @@ vim /etc/mesos-master/webui_dir
 /usr/share/mesos/webui2
 ```
 
+## Screenshots
 
-
+![clipboard_20260207150054.bmp](vx_images/clipboard_20260207150054.bmp)
+![clipboard_20260207150113.bmp](vx_images/clipboard_20260207150113.bmp)
 
 
