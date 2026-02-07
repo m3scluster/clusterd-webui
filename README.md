@@ -26,14 +26,6 @@ modular, easy toextend, and uses react.
 - **Tasks Management**
   - Display all tasks with status history
   - Detail view in a dialog
-  - Dynamic time displays (e.g., "4 days ago")
-
-- **Components**
-  - Reusable badges (`StateBadge`, `HealthBadge`)
-  - Expandable table rows for more details
-
-- **Utility Functions**
-  - Formatting of time differences and other data (`lib/formatters.js`)
 
 ---
 
