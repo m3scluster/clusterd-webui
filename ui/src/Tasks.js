@@ -50,11 +50,11 @@ function DataInner() {
       )}
 
       <p></p>
-      <TasksTable tasks={tasks}/>
+      <TasksTable tasks={tasks} title="Active Tasks"/>
       <p></p>
-      <TasksTable tasks={unreachable}/>
+      <TasksTable tasks={unreachable} title="Unreachable Tasks"/>
       <p></p>
-      <TasksTable tasks={completed}/>
+      <TasksTable tasks={completed} title="Completed Tasks"/>
 
     </Box>
   );
