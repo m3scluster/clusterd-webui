@@ -1,7 +1,7 @@
 import { Box } from '@mui/material';
 import { useState, useEffect } from 'react';
 import AgentsTable from './AgentsTable.js';
-import { useAuth } from "./Home"
+import { useAuth } from "../../Home"
 
 export default function Data(props: DataProps) {
   const [loading, setLoading] = useState(false);  

@@ -5,15 +5,15 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import TasksDetails from './dialogs/detail.js';
+import TasksDetails from '../../dialogs/detail.js';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import Collapse from '@mui/material/Collapse';
 import IconButton from '@mui/material/IconButton';
 import { useState } from 'react';
 import * as React from 'react';
-import { FormatTimeDifference, StateBadge, HealthBadge } from "./libs/functions";
-import "./App.css";
+import { FormatTimeDifference, StateBadge, HealthBadge } from "../../libs/functions";
+import "../../app/App.css";
 
 export default function TasksTable({tasks, title}) {
   const data = tasks;

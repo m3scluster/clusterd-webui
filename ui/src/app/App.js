@@ -2,8 +2,8 @@ import React from "react";
 import CssBaseline from "@mui/material/CssBaseline";
 import Logo from "./Logo";
 import Menu from "./Menu";
-import Tasks from "./Tasks";
-import Home, { AuthProvider } from "./Home";
+import Tasks from "../features/tasks";
+import Home, { AuthProvider } from "../Home";
 import "./App.css";
 
 

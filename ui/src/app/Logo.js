@@ -1,5 +1,5 @@
 import { Box, Typography } from '@mui/material';
-import logo from './images/clusterd.png'
+import logo from '../images/clusterd.png'
 
 export interface LogoProps {
   onClick: () => void;

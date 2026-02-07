@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Box, Tabs, Tab } from "@mui/material";
-import Tasks from "./Tasks";
-import Agents from "./Agents";
-import Home from "./Home";
-import Frameworks from "./Frameworks";
-import ClusterInfo from "./ClusterInfo";
+import Tasks from "../features/tasks/Tasks";
+import Agents from "../features/agent/Agents";
+import Home from "../Home";
+import Frameworks from "../features/frameworks/Frameworks";
+import ClusterInfo from "../ClusterInfo";
 
 export default function MainMenu() {
 

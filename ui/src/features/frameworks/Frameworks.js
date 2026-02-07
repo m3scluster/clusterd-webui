@@ -1,7 +1,7 @@
 import { Box } from "@mui/material";
-import { useAuth } from "./Home";
+import { useAuth } from "../../Home";
 import FrameworksTable from './FrameworksTable.js';
-import { FormatTimeDifference } from "./libs/functions";
+import { FormatTimeDifference } from "../../libs/functions";
 import { QueryClient, QueryClientProvider, useQuery} from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
