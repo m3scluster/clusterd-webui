@@ -7,6 +7,7 @@ import Frameworks from "../features/frameworks/Frameworks";
 import ClusterInfo from "../ClusterInfo";
 import Logo from "./Logo";
 import { useAuth } from "../auth/AuthContext";
+import ThemeToggle from "./ThemeToggle";
 
 export default function MainMenu() {
   const [tabValue, setTabValue] = useState(0);
@@ -25,6 +26,7 @@ export default function MainMenu() {
           <Logo />
           <Box flexGrow={1} />
           <Stack direction="row" spacing={2} alignItems="center">
+            <ThemeToggle />
             <Typography variant="body2">{principal}</Typography>
             <Button color="inherit" onClick={logout}>Sign out</Button>
           </Stack>

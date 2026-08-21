@@ -1,100 +1,96 @@
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import TasksDetails from '../../dialogs/detail.js';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import Collapse from '@mui/material/Collapse';
-import IconButton from '@mui/material/IconButton';
-import { useState } from 'react';
-import * as React from 'react';
-import { FormatTimeDifference, StateBadge, HealthBadge } from "../../libs/functions";
+import React, { useState } from "react";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import {
+  Box,
+  IconButton,
+  Link,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+import TaskDetailsDialog from "../../dialogs/TaskDetailsDialog";
+import { FormatTimeDifference, HealthBadge, StateBadge } from "../../libs/functions";
 import "../../app/App.css";
 
-export default function TasksTable({tasks, title}) {
-  const data = tasks;
-  const [openRows, setOpenRows] = useState({}); // Zustand pro Task-ID
+function latestStatus(task) {
+  return task.statuses?.at(-1);
+}
 
-  const toggleRow = (id) => {
-    setOpenRows(prev => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
+function taskHealth(task) {
+  const status = latestStatus(task);
+  if (status?.healthy === true) return "Healthy";
+  if (status?.healthy === false) return "Unhealthy";
+  return null;
+}
 
-  const Row = ({row}) =>  {
-    const open = !!openRows[row.id];
+function taskStarted(task) {
+  const timestamp = latestStatus(task)?.timestamp;
+  return timestamp ? `${FormatTimeDifference(timestamp)} ago` : "—";
+}
 
-    return (
-        <React.Fragment>
-            <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-              <TableCell>
-                <IconButton aria-label="expand row" size="small" onClick={() => toggleRow(row.id)}>
-                 {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-               </IconButton>
-              </TableCell>
-              <TableCell>{row.framework_id}</TableCell>
-              <TableCell component="th" scope="row">{row.id}</TableCell>
-              <TableCell>{row.name}</TableCell>
-              <TableCell>{row.role ?? []}</TableCell>
-              <TableCell><StateBadge state={row.state} /></TableCell>
-              <TableCell>
-                <HealthBadge
-                  health=
-                         {(() => {
-                           const lastState = row.statuses?.at(-1);
-                           if (lastState?.state === "TASK_RUNNING") {
-                             return row.statuses?.at(-1).healthy ? "Healthy" : "Unhealthy";
-                           }
-                           return null;
-                         })()}
-                />
-              </TableCell>
-              <TableCell>{FormatTimeDifference(row.statuses?.at(-1).timestamp)}</TableCell>
-              <TableCell>{row.hostname}</TableCell>
-              <TableCell>
-                <a href="#/agents/{{row.slave_id}}/frameworks/{{row.framework_id}}/executors/{{row.executor_id}}/tasks/{{row.id}}/browse">Sandbox</a>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell style={{ paddingBottom: 0, paddingTop: 0, paddingLeft: "100px" }} colSpan={5}>
-                <Collapse in={open} timeout="auto" unmountOnExit>
-                   <TasksDetails key={row.id} data={row} />
-               </Collapse>
-              </TableCell>
-            </TableRow>
-         </React.Fragment>
-    );
-  };
+export default function TasksTable({ tasks = [], title }) {
+  const [selectedTask, setSelectedTask] = useState(null);
 
   return (
-    <TableContainer component={Paper}>
-      <h4>{title}</h4>
-      <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
-        <TableHead>
-          <TableRow>
-            <TableCell></TableCell>
-            <TableCell>Framework ID</TableCell>
-            <TableCell>Task ID</TableCell>
-            <TableCell>Task Name</TableCell>
-            <TableCell>Role</TableCell>
-            <TableCell>State</TableCell>
-            <TableCell>Health</TableCell>
-            <TableCell>Started</TableCell>
-            <TableCell>Host</TableCell>
-            <TableCell>Sandbox</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {data.map((row) => (
-            <Row key={row.id} row={row} />
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>    
+    <>
+      <Paper className="table-card" elevation={0}>
+        <Typography className="table-title" variant="h6">{title}</Typography>
+        <TableContainer component={Box}>
+          <Table sx={{ minWidth: 1050 }} size="small" aria-label={title}>
+            <TableHead>
+              <TableRow>
+                <TableCell width={52} aria-label="Actions" />
+                <TableCell>Framework ID</TableCell>
+                <TableCell>Task ID</TableCell>
+                <TableCell>Task name</TableCell>
+                <TableCell>Role</TableCell>
+                <TableCell>State</TableCell>
+                <TableCell>Health</TableCell>
+                <TableCell>Started</TableCell>
+                <TableCell>Host</TableCell>
+                <TableCell>Sandbox</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {tasks.length === 0 && (
+                <TableRow><TableCell colSpan={10} align="center" sx={{ py: 4, color: "text.secondary" }}>No tasks.</TableCell></TableRow>
+              )}
+              {tasks.map((task) => (
+                <TableRow hover key={task.id}>
+                  <TableCell>
+                    <Tooltip title="View task details">
+                      <IconButton aria-label={`View details for ${task.name || task.id}`} size="small" onClick={() => setSelectedTask(task)}>
+                        <VisibilityOutlinedIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell className="id-cell" title={task.framework_id}>{task.framework_id || "—"}</TableCell>
+                  <TableCell className="id-cell" title={task.id}>{task.id || "—"}</TableCell>
+                  <TableCell>{task.name || "—"}</TableCell>
+                  <TableCell>{Array.isArray(task.role) ? task.role.join(", ") : task.role || "—"}</TableCell>
+                  <TableCell><StateBadge state={task.state} /></TableCell>
+                  <TableCell><HealthBadge health={taskHealth(task)} /></TableCell>
+                  <TableCell sx={{ whiteSpace: "nowrap" }}>{taskStarted(task)}</TableCell>
+                  <TableCell>{task.hostname || "—"}</TableCell>
+                  <TableCell>
+                    {task.slave_id && task.framework_id && task.executor_id && task.id ? (
+                      <Link href={`#/agents/${task.slave_id}/frameworks/${task.framework_id}/executors/${task.executor_id}/tasks/${task.id}/browse`}>Sandbox</Link>
+                    ) : "—"}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+
+      <TaskDetailsDialog open={Boolean(selectedTask)} task={selectedTask} onClose={() => setSelectedTask(null)} />
+    </>
   );
 }

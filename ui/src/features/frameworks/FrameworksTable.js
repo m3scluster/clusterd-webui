@@ -5,6 +5,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
 import * as React from 'react';
 import { FormatTimeDifference } from "../../libs/functions";
 
@@ -43,7 +44,7 @@ export default function FrameworksTable({frameworks, title}) {
   return (
     <div>
     <TableContainer component={Paper}>
-        <h4>{title}</h4>
+        <Typography className="table-title" variant="h6">{title}</Typography>
         <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
           <TableHead>
             <TableRow>

@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import { useAuth } from "./auth/AuthContext";
 import { deriveDashboard } from "./dashboard";
+import ThemeToggle from "./app/ThemeToggle";
 
 function Login() {
   const { login } = useAuth();
@@ -43,11 +44,12 @@ function Login() {
 
   return (
     <Box className="login-page">
+      <ThemeToggle sx={{ position: "absolute", right: 20, top: 20, border: 1, borderColor: "divider", bgcolor: "background.paper" }} />
       <Paper className="login-card" elevation={8}>
         <Typography variant="overline" color="primary">Cluster administration</Typography>
         <Typography variant="h4" fontWeight={700} gutterBottom>Sign in to ClusterD</Typography>
         <Typography color="text.secondary" sx={{ mb: 3 }}>
-          Credentials are verified directly by the ClusterD master and are kept only for this browser session.
+          Credentials are verified directly by the ClusterD master and kept only for this tab session.
         </Typography>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         <Stack component="form" spacing={2} onSubmit={handleSubmit}>

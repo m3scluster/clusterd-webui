@@ -12,6 +12,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import Collapse from '@mui/material/Collapse';
 import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
 
 export default function AgentsTable({agents}) {
   const data = agents;
@@ -57,7 +58,7 @@ export default function AgentsTable({agents}) {
 
   return (
     <TableContainer component={Paper}>
-      <h4>Agents</h4>
+      <Typography className="table-title" variant="h6">Agents</Typography>
       <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
         <TableHead>
           <TableRow>

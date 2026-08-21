@@ -1,22 +1,25 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { buildBasicAuthHeader, fetchJson } from "../api";
+import { clearAuthSession, persistAuthSession, restoreAuthSession } from "./authSession";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [authHeader, setAuthHeader] = useState(null);
-  const [principal, setPrincipal] = useState("");
+  const [session, setSession] = useState(() => restoreAuthSession());
+  const authHeader = session?.authHeader || null;
+  const principal = session?.principal || "";
 
   const login = useCallback(async (username, password) => {
     const header = buildBasicAuthHeader(username, password);
     await fetchJson("/master/state-summary", header);
-    setAuthHeader(header);
-    setPrincipal(username);
+    const authenticatedSession = { authHeader: header, principal: username };
+    persistAuthSession(authenticatedSession);
+    setSession(authenticatedSession);
   }, []);
 
   const logout = useCallback(() => {
-    setAuthHeader(null);
-    setPrincipal("");
+    clearAuthSession();
+    setSession(null);
   }, []);
 
   const request = useCallback(async (path, options) => {
