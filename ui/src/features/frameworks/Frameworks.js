@@ -1,30 +1,15 @@
 import { Box } from "@mui/material";
-import { useAuth, baseUrl } from "../../Home";
-import { useState } from 'react';
+import { useAuth } from "../../auth/AuthContext";
 import FrameworksTable from './FrameworksTable.js';
-import { FormatTimeDifference } from "../../libs/functions";
 import { QueryClient, QueryClientProvider, useQuery} from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
 
-const useMesosFrameworks = (authHeader?: string, baseUrl?: string) => {
+const useMesosFrameworks = (request, authenticated) => {
   return useQuery({
-    queryKey: ["mesosFrameworks", authHeader],
-    enabled: !!authHeader,
-    queryFn: async () => {
-      const resp = await fetch(
-        `${baseUrl}/frameworks?order=dsc&limit=-1`,
-        {
-          headers: { Authorization: authHeader },
-        }
-      );
-
-      if (!resp.ok) {
-        throw new Error(`HTTP ${resp.status}`);
-      }
-
-      return resp.json();
-    },
+    queryKey: ["mesosFrameworks", authenticated],
+    enabled: authenticated,
+    queryFn: () => request("/frameworks?order=dsc&limit=-1"),
     refetchInterval: 5000,
     staleTime: 4000,
     keepPreviousData: true,
@@ -32,8 +17,8 @@ const useMesosFrameworks = (authHeader?: string, baseUrl?: string) => {
 };
 
 function DataInner() {
-  const { authHeader, baseUrl } = useAuth();
-  const { data, isLoading, isFetching, error } = useMesosFrameworks(authHeader, baseUrl);
+  const { request, isAuthenticated } = useAuth();
+  const { data, isLoading, error } = useMesosFrameworks(request, isAuthenticated);
 
   const frameworks = data?.frameworks ?? [];
   const active = frameworks.filter(f => f.active === true);

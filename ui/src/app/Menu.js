@@ -1,49 +1,57 @@
-import { useState } from 'react';
-import { Box, Tabs, Tab } from "@mui/material";
+import { useState } from "react";
+import { AppBar, Box, Button, Container, Stack, Tab, Tabs, Toolbar, Typography } from "@mui/material";
 import Tasks from "../features/tasks/Tasks";
 import Agents from "../features/agent/Agents";
 import Home from "../Home";
 import Frameworks from "../features/frameworks/Frameworks";
 import ClusterInfo from "../ClusterInfo";
+import Logo from "./Logo";
+import { useAuth } from "../auth/AuthContext";
 
 export default function MainMenu() {
-
   const [tabValue, setTabValue] = useState(0);
-
-  const tabStyle = {
-    textTransform: 'none',
-    fontSize: '14px',
-    fontWeight: 600
-  };
+  const { isAuthenticated, logout, principal } = useAuth();
 
   const handleTabsChange = (event, value) => {
     setTabValue(value);
   };
 
+  if (!isAuthenticated) return <Home />;
+
   return (
-
-    <>
-
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-
-        <Tabs value={tabValue} onChange={handleTabsChange}>
-          <Tab label="Home" value={0} sx={tabStyle} />
-          <Tab label="Tasks" value={1} sx={tabStyle} />
-          <Tab label="Frameworks" value={2} sx={tabStyle} />
-          <Tab label="Agents" value={3} sx={tabStyle} />
-          <Tab label="Details" value={4} sx={tabStyle} />
+    <Box minHeight="100vh">
+      <AppBar position="static" elevation={0}>
+        <Toolbar>
+          <Logo />
+          <Box flexGrow={1} />
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Typography variant="body2">{principal}</Typography>
+            <Button color="inherit" onClick={logout}>Sign out</Button>
+          </Stack>
+        </Toolbar>
+        <Tabs
+          value={tabValue}
+          onChange={handleTabsChange}
+          textColor="inherit"
+          indicatorColor="secondary"
+          variant="scrollable"
+          scrollButtons="auto"
+          className="main-tabs"
+        >
+          <Tab label="Overview" value={0} />
+          <Tab label="Tasks" value={1} />
+          <Tab label="Frameworks" value={2} />
+          <Tab label="Agents" value={3} />
+          <Tab label="Master details" value={4} />
         </Tabs>
-
-      </Box>
-
-      {tabValue === 0 && <Home />}
-      {tabValue === 1 && <Tasks />}
-      {tabValue === 2 && <Frameworks />}
-      {tabValue === 3 && <Agents />}
-      {tabValue === 4 && <ClusterInfo />}
-
-    </>
-
+      </AppBar>
+      <Container maxWidth="xl" sx={{ py: 3 }}>
+        {tabValue === 0 && <Home />}
+        {tabValue === 1 && <Tasks />}
+        {tabValue === 2 && <Frameworks />}
+        {tabValue === 3 && <Agents />}
+        {tabValue === 4 && <ClusterInfo />}
+      </Container>
+    </Box>
   );
-
 }

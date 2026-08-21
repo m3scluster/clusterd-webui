@@ -1,11 +1,11 @@
 import { Box } from '@mui/material';
-import { useState, useEffect } from 'react';
-import { useAuth } from "./Home"
+import { useCallback, useState, useEffect } from 'react';
+import { useAuth } from "./auth/AuthContext";
 
 export default function ClusterInfo() {
   const [loading, setLoading] = useState(false);  
   const [stateData, setStateData] = useState([]);
-	const { authHeader } = useAuth();
+	const { request } = useAuth();
 
   const detailStyle = {
     marginTop: '1em',
@@ -16,25 +16,17 @@ export default function ClusterInfo() {
   };
 
   // Function to get Apache Mesos Tasks
-  const getMesosState = async () => {
+  const getMesosState = useCallback(async () => {
     setLoading(true);
 
-    const response = await fetch("https://172.30.96.0:5050/state",
-      {
-        method: "GET",
-        headers: {
-          Authorization: authHeader, // <- hier den globalen Header nutzen
-        },
-      }
-    );
-    const data = await response.json();
+    const data = await request("/state");
     setStateData(data);
     setLoading(false);
-  };  
+  }, [request]);
 
   useEffect(() => {
     getMesosState();
-  }, []); 
+  }, [getMesosState]);
 
   return (
     <Box style={{ textAlign: 'center', marginBottom: '20px' }}>

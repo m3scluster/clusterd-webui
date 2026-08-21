@@ -39,6 +39,22 @@ cd <project-folder>
 make build
 ```
 
+## Development
+
+`make serve` starts the React development server and proxies ClusterD/Mesos API
+requests to `https://devtest.lab.internal:5050`. This keeps browser requests
+same-origin and avoids CORS errors; the development proxy accepts the master's
+self-signed TLS certificate.
+
+Use another master without changing the UI source:
+
+```bash
+make serve CLUSTERD_PROXY_TARGET=https://other-master.example:5050
+```
+
+The production build uses relative API URLs and is intended to be served by the
+ClusterD master itself.
+
 2. Copy `ui/app` on all ClusterD/Apache Mesos Master servers.
 
 3. Change ClusterD/Apache Mesos Master configuration. As example:
