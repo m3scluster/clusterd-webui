@@ -1,80 +1,78 @@
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import AgentsDetails from '../../dialogs/detail.js';
-import { useState } from 'react';
-import * as React from 'react';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import Collapse from '@mui/material/Collapse';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
+import React, { useState } from "react";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import {
+  Box,
+  Chip,
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+import AgentDetailsDialog from "../../dialogs/AgentDetailsDialog";
 
-export default function AgentsTable({agents}) {
-  const data = agents;
+function StatusChip({ agent }) {
+  if (agent.active) return <Chip label="Active" color="success" size="small" />;
+  if (agent.deactivated) return <Chip label="Deactivated" color="warning" size="small" />;
+  return <Chip label="Inactive" size="small" />;
+}
 
-  const Row = ({row}) =>  {
-    const [open, setOpen] = useState(false);  
-
-    return (
-        <React.Fragment>
-            <TableRow
-              key={row.id}
-              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-            >
-
-             <TableCell>
-               <IconButton
-                 aria-label="expand row"
-                 size="small"
-                 onClick={() => setOpen(!open)}
-               >
-                 {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-               </IconButton>
-             </TableCell>            
-              <TableCell component="th" scope="row">
-                {row.id}
-              </TableCell>
-              <TableCell>{row.hostname}</TableCell>
-              <TableCell>{row.version}</TableCell>
-              <TableCell align="right">{row.active.toString()}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell style={{ paddingBottom: 0, paddingTop: 0, paddingLeft: "100px" }} colSpan={5}>
-                <Collapse in={open} timeout="auto" unmountOnExit>
-                   <AgentsDetails key={row.id} data={row} />
-               </Collapse>
-              </TableCell>            
-            </TableRow>
-         </React.Fragment>
-    );
-  };
-
-  
+export default function AgentsTable({ agents = [] }) {
+  const [selectedAgent, setSelectedAgent] = useState(null);
 
   return (
-    <TableContainer component={Paper}>
-      <Typography className="table-title" variant="h6">Agents</Typography>
-      <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
-        <TableHead>
-          <TableRow>
-            <TableCell></TableCell>
-            <TableCell>Agent ID</TableCell>
-            <TableCell>Hostname</TableCell>
-            <TableCell>Mesos Version</TableCell>
-            <TableCell align="right">Active</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {data.map((row) => (
-            <Row key={row.id} row={row} />
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>    
+    <>
+      <Paper className="table-card" elevation={0}>
+        <Typography className="table-title" variant="h6">Agents</Typography>
+        <TableContainer component={Box}>
+          <Table sx={{ minWidth: 760 }} size="small" aria-label="Agents">
+            <TableHead>
+              <TableRow>
+                <TableCell width={52} aria-label="Actions" />
+                <TableCell>Agent ID</TableCell>
+                <TableCell>Hostname</TableCell>
+                <TableCell>Mesos version</TableCell>
+                <TableCell align="right">Status</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {agents.length === 0 && (
+                <TableRow><TableCell colSpan={5} align="center" sx={{ py: 4, color: "text.secondary" }}>No agents.</TableCell></TableRow>
+              )}
+              {agents.map((agent) => (
+                <TableRow hover key={agent.id}>
+                  <TableCell>
+                    <Tooltip title="View agent details">
+                      <IconButton
+                        aria-label={`View details for ${agent.hostname || agent.id}`}
+                        size="small"
+                        onClick={() => setSelectedAgent(agent)}
+                      >
+                        <VisibilityOutlinedIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell className="id-cell" title={agent.id}>{agent.id || "—"}</TableCell>
+                  <TableCell>{agent.hostname || "—"}</TableCell>
+                  <TableCell>{agent.version || "—"}</TableCell>
+                  <TableCell align="right"><StatusChip agent={agent} /></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+
+      <AgentDetailsDialog
+        open={Boolean(selectedAgent)}
+        agent={selectedAgent}
+        onClose={() => setSelectedAgent(null)}
+      />
+    </>
   );
 }
