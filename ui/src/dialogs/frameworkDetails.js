@@ -1,0 +1,74 @@
+const EMPTY = "—";
+
+export function frameworkRoles(framework = {}) {
+  const value = framework || {};
+  const source = Array.isArray(value.roles)
+    ? value.roles
+    : value.role
+      ? [value.role]
+      : [];
+  return [...new Set(source.map((role) => String(role).trim()).filter(Boolean))];
+}
+
+export function normalizeFrameworkRoles(framework = {}) {
+  const roles = frameworkRoles(framework);
+  return roles.length ? roles.join(", ") : EMPTY;
+}
+
+export function formatFrameworkTimestamp(timestamp) {
+  const value = Number(timestamp);
+  if (!Number.isFinite(value) || value <= 0) return EMPTY;
+  return new Date(value * 1000).toLocaleString();
+}
+
+export function formatFrameworkResource(name, value) {
+  if (value === null || value === undefined || value === "") return EMPTY;
+  if (name === "ports") return String(value);
+  const number = Number(value);
+  if (!Number.isFinite(number)) return EMPTY;
+  const formatted = number.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  if (name === "mem" || name === "disk") return `${formatted} MiB`;
+  return formatted;
+}
+
+export function frameworkStatus(framework = {}) {
+  const value = framework || {};
+  if (value.active && value.connected) return { label: "Active", color: "success" };
+  if (value.active) return { label: "Active · disconnected", color: "warning" };
+  if (value.recovered) return { label: "Recovered", color: "warning" };
+  if (Number(value.unregistered_time) > 0) return { label: "Unregistered", color: "default" };
+  if (value.connected) return { label: "Connected · inactive", color: "info" };
+  return { label: "Inactive", color: "default" };
+}
+
+export function frameworkTaskCounts(framework = {}) {
+  const value = framework || {};
+  const count = (value) => Array.isArray(value) ? value.length : 0;
+  return {
+    active: count(value.tasks),
+    completed: count(value.completed_tasks),
+    unreachable: count(value.unreachable_tasks),
+    executors: count(value.executors),
+  };
+}
+
+export function frameworkWebUiUrl(value) {
+  if (typeof value !== "string" || !value.trim()) return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+export function frameworkAdvancedDetails(framework = {}) {
+  const value = framework || {};
+  return {
+    tasks: value.tasks || [],
+    completed_tasks: value.completed_tasks || [],
+    unreachable_tasks: value.unreachable_tasks || [],
+    executors: value.executors || [],
+    offer_constraints: value.offer_constraints || {},
+  };
+}

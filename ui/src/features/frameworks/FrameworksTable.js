@@ -1,75 +1,95 @@
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import Typography from '@mui/material/Typography';
-import * as React from 'react';
-import { FormatTimeDifference } from "../../libs/functions";
+import React, { useState } from "react";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import {
+  Box,
+  Chip,
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+import FrameworkDetailsDialog from "../../dialogs/FrameworkDetailsDialog";
+import {
+  formatFrameworkResource,
+  formatFrameworkTimestamp,
+  frameworkStatus,
+  frameworkTaskCounts,
+  normalizeFrameworkRoles,
+} from "../../dialogs/frameworkDetails";
 
-export default function FrameworksTable({frameworks, title}) {
-  const data = frameworks;
-
-  const Row = ({row}) =>  {
-    return (
-        <React.Fragment>
-            <TableRow
-              key={row.id}
-              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-            >
-
-              <TableCell component="th" scope="row">
-                {row.id}
-              </TableCell>
-              <TableCell>{row.hostname}</TableCell>
-              <TableCell>{row.user}</TableCell>
-              <TableCell>{row.name}</TableCell>
-              <TableCell>{row.roles}</TableCell>
-              <TableCell>{row.principal}</TableCell>
-              <TableCell></TableCell>
-              <TableCell>{row.resources.cpus}</TableCell>
-              <TableCell>{row.resources.gpus}</TableCell>
-              <TableCell>{row.resources.mem}</TableCell>
-              <TableCell>{row.resources.disk}</TableCell>
-              <TableCell></TableCell>
-              <TableCell>{FormatTimeDifference(row.registered_time)} ago</TableCell>
-            </TableRow>
-         </React.Fragment>
-    );
-  };
-  
+export default function FrameworksTable({ frameworks = [], title }) {
+  const [selectedFramework, setSelectedFramework] = useState(null);
 
   return (
-    <div>
-    <TableContainer component={Paper}>
+    <>
+      <Paper className="table-card" elevation={0}>
         <Typography className="table-title" variant="h6">{title}</Typography>
-        <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Host</TableCell>
-              <TableCell>User</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Role</TableCell>
-              <TableCell>Principal</TableCell>
-              <TableCell>Active Tasks</TableCell>
-              <TableCell>CPUs</TableCell>
-              <TableCell>GPUs</TableCell>
-              <TableCell>Mem</TableCell>
-              <TableCell>Disk</TableCell>
-              <TableCell>Max Share</TableCell>
-              <TableCell>Registered</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-          {data.map((row) => (
-            <Row key={row.id} row={row} />
-          ))}
-          </TableBody>
-        </Table>
-      </TableContainer>    
-    </div>
+        <TableContainer component={Box}>
+          <Table sx={{ minWidth: 1050 }} size="small" aria-label={title}>
+            <TableHead>
+              <TableRow>
+                <TableCell width={52} aria-label="Actions" />
+                <TableCell>Name</TableCell>
+                <TableCell>Framework ID</TableCell>
+                <TableCell>Host</TableCell>
+                <TableCell>Roles</TableCell>
+                <TableCell align="right">Active tasks</TableCell>
+                <TableCell align="right">CPU</TableCell>
+                <TableCell align="right">Memory</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Registered</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {frameworks.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={10} align="center" sx={{ py: 4, color: "text.secondary" }}>No frameworks.</TableCell>
+                </TableRow>
+              )}
+              {frameworks.map((framework) => {
+                const status = frameworkStatus(framework);
+                const counts = frameworkTaskCounts(framework);
+                return (
+                  <TableRow hover key={framework.id}>
+                    <TableCell>
+                      <Tooltip title="View framework details">
+                        <IconButton
+                          aria-label={`View details for ${framework.name || framework.id}`}
+                          size="small"
+                          onClick={() => setSelectedFramework(framework)}
+                        >
+                          <VisibilityOutlinedIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell>{framework.name || "—"}</TableCell>
+                    <TableCell className="id-cell" title={framework.id}>{framework.id || "—"}</TableCell>
+                    <TableCell>{framework.hostname || "—"}</TableCell>
+                    <TableCell>{normalizeFrameworkRoles(framework)}</TableCell>
+                    <TableCell align="right">{counts.active}</TableCell>
+                    <TableCell align="right">{formatFrameworkResource("cpus", framework.resources?.cpus)}</TableCell>
+                    <TableCell align="right">{formatFrameworkResource("mem", framework.resources?.mem)}</TableCell>
+                    <TableCell><Chip label={status.label} color={status.color} size="small" /></TableCell>
+                    <TableCell sx={{ whiteSpace: "nowrap" }}>{formatFrameworkTimestamp(framework.registered_time)}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+
+      <FrameworkDetailsDialog
+        open={Boolean(selectedFramework)}
+        framework={selectedFramework}
+        onClose={() => setSelectedFramework(null)}
+      />
+    </>
   );
 }

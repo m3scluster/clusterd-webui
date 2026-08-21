@@ -26,6 +26,17 @@ export function taskHealth(task) {
   return "—";
 }
 
+export function taskSandboxHref(task) {
+  const agentId = task?.slave_id;
+  const frameworkId = task?.framework_id;
+  const taskId = task?.id;
+  if (!agentId || !frameworkId || !taskId) return null;
+
+  const executorId = task.executor_id || taskId;
+  const encode = (value) => encodeURIComponent(String(value));
+  return `#/agents/${encode(agentId)}/frameworks/${encode(frameworkId)}/executors/${encode(executorId)}/tasks/${encode(taskId)}/browse`;
+}
+
 export function taskAdvancedDetails(task) {
   const value = task || {};
   const statusContainers = (value.statuses || [])

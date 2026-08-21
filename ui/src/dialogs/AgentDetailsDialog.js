@@ -16,6 +16,8 @@ import {
   Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import TerminalIcon from "@mui/icons-material/Terminal";
+import LogViewerDialog from "../logs/LogViewerDialog";
 import {
   agentAdvancedDetails,
   agentResourceStats,
@@ -69,12 +71,14 @@ function agentStatus(agent) {
 }
 
 export default function AgentDetailsDialog({ open, agent, onClose }) {
+  const [logsOpen, setLogsOpen] = React.useState(false);
   const status = agentStatus(agent);
   const advanced = agentAdvancedDetails(agent);
   const attributes = Object.entries(agent?.attributes || {});
   const capabilities = Array.isArray(agent?.capabilities) ? agent.capabilities : [];
 
   return (
+    <>
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg" scroll="paper">
       <DialogTitle sx={{ pr: 7 }}>
         <Typography variant="overline" color="primary.light">Agent details</Typography>
@@ -111,6 +115,7 @@ export default function AgentDetailsDialog({ open, agent, onClose }) {
             <Box>
               <Typography variant="h6" fontWeight={700} gutterBottom>Identifier</Typography>
               <DetailField label="Agent ID" mono>{agent.id || EMPTY}</DetailField>
+              <Button startIcon={<TerminalIcon />} variant="outlined" sx={{ mt: 2 }} onClick={() => setLogsOpen(true)}>View agent log</Button>
             </Box>
 
             <Divider />
@@ -163,5 +168,13 @@ export default function AgentDetailsDialog({ open, agent, onClose }) {
       </DialogContent>
       <DialogActions><Button onClick={onClose}>Close</Button></DialogActions>
     </Dialog>
+    <LogViewerDialog
+      open={logsOpen}
+      onClose={() => setLogsOpen(false)}
+      kind="agent"
+      title={`${agent?.hostname || agent?.id || "Agent"} log`}
+      agent={agent}
+    />
+    </>
   );
 }

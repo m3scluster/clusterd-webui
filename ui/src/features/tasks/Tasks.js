@@ -9,7 +9,13 @@ const useMesosTasks = (request, authenticated) => {
   return useQuery({
     queryKey: ["mesosTasks", authenticated],
     enabled: authenticated,
-    queryFn: () => request("/frameworks?order=dsc&limit=-1"),
+    queryFn: async () => {
+      const [frameworkData, agentData] = await Promise.all([
+        request("/frameworks?order=dsc&limit=-1"),
+        request("/slaves"),
+      ]);
+      return { frameworks: frameworkData.frameworks ?? [], agents: agentData.slaves ?? [] };
+    },
     refetchInterval: 5000,
     staleTime: 4000,
     keepPreviousData: true,
@@ -21,9 +27,11 @@ function DataInner() {
   const { data, isLoading, error } = useMesosTasks(request, isAuthenticated);
 
   const frameworks = data?.frameworks ?? [];
-  const tasks = frameworks.flatMap((framework) => framework.tasks ?? []);
-  const unreachable = frameworks.flatMap((framework) => framework.unreachable_tasks ?? []);
-  const completed = frameworks.flatMap((framework) => framework.completed_tasks ?? []);
+  const agentsById = new Map((data?.agents ?? []).map((agent) => [agent.id, agent]));
+  const attachAgent = (tasks) => tasks.map((task) => ({ ...task, _agent: agentsById.get(task.slave_id) || null }));
+  const tasks = attachAgent(frameworks.flatMap((framework) => framework.tasks ?? []));
+  const unreachable = attachAgent(frameworks.flatMap((framework) => framework.unreachable_tasks ?? []));
+  const completed = attachAgent(frameworks.flatMap((framework) => framework.completed_tasks ?? []));
 
   return (
     <Box sx={{ p: 2 }}>

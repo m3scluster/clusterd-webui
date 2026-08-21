@@ -65,9 +65,12 @@ vim /etc/mesos-master/webui_dir
 /usr/share/mesos/webui2
 ```
 
-## Screenshots
+## WebUI slideshow
 
-![clipboard_20260207150054.bmp](vx_images/clipboard_20260207150054.bmp)
-![clipboard_20260207150113.bmp](vx_images/clipboard_20260207150113.bmp)
+The slideshow was captured directly from the running WebUI. It demonstrates
+the cluster overview, task and framework details, agents and their resources,
+master information, and the light/dark color modes.
+
+![ClusterD WebUI feature slideshow](docs/clusterd-webui-slideshow.gif)
 
 

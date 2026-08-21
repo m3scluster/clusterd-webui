@@ -15,6 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import TaskDetailsDialog from "../../dialogs/TaskDetailsDialog";
+import { taskSandboxHref } from "../../dialogs/taskDetails";
 import { FormatTimeDifference, HealthBadge, StateBadge } from "../../libs/functions";
 import "../../app/App.css";
 
@@ -61,30 +62,31 @@ export default function TasksTable({ tasks = [], title }) {
               {tasks.length === 0 && (
                 <TableRow><TableCell colSpan={10} align="center" sx={{ py: 4, color: "text.secondary" }}>No tasks.</TableCell></TableRow>
               )}
-              {tasks.map((task) => (
-                <TableRow hover key={task.id}>
-                  <TableCell>
-                    <Tooltip title="View task details">
-                      <IconButton aria-label={`View details for ${task.name || task.id}`} size="small" onClick={() => setSelectedTask(task)}>
-                        <VisibilityOutlinedIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell className="id-cell" title={task.framework_id}>{task.framework_id || "—"}</TableCell>
-                  <TableCell className="id-cell" title={task.id}>{task.id || "—"}</TableCell>
-                  <TableCell>{task.name || "—"}</TableCell>
-                  <TableCell>{Array.isArray(task.role) ? task.role.join(", ") : task.role || "—"}</TableCell>
-                  <TableCell><StateBadge state={task.state} /></TableCell>
-                  <TableCell><HealthBadge health={taskHealth(task)} /></TableCell>
-                  <TableCell sx={{ whiteSpace: "nowrap" }}>{taskStarted(task)}</TableCell>
-                  <TableCell>{task.hostname || "—"}</TableCell>
-                  <TableCell>
-                    {task.slave_id && task.framework_id && task.executor_id && task.id ? (
-                      <Link href={`#/agents/${task.slave_id}/frameworks/${task.framework_id}/executors/${task.executor_id}/tasks/${task.id}/browse`}>Sandbox</Link>
-                    ) : "—"}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {tasks.map((task) => {
+                const sandboxHref = taskSandboxHref(task);
+                return (
+                  <TableRow hover key={task.id}>
+                    <TableCell>
+                      <Tooltip title="View task details">
+                        <IconButton aria-label={`View details for ${task.name || task.id}`} size="small" onClick={() => setSelectedTask(task)}>
+                          <VisibilityOutlinedIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell className="id-cell" title={task.framework_id}>{task.framework_id || "—"}</TableCell>
+                    <TableCell className="id-cell" title={task.id}>{task.id || "—"}</TableCell>
+                    <TableCell>{task.name || "—"}</TableCell>
+                    <TableCell>{Array.isArray(task.role) ? task.role.join(", ") : task.role || "—"}</TableCell>
+                    <TableCell><StateBadge state={task.state} /></TableCell>
+                    <TableCell><HealthBadge health={taskHealth(task)} /></TableCell>
+                    <TableCell sx={{ whiteSpace: "nowrap" }}>{taskStarted(task)}</TableCell>
+                    <TableCell>{task.hostname || "—"}</TableCell>
+                    <TableCell>
+                      {sandboxHref ? <Link href={sandboxHref}>Sandbox</Link> : "—"}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </TableContainer>

@@ -10,4 +10,18 @@ function getProxyConfig(env = process.env) {
   };
 }
 
-module.exports = { DEFAULT_TARGET, getProxyConfig };
+function getAgentProxyRoute(pathname) {
+  const match = String(pathname || "").match(/^(?:\/agent-api)?\/([^/]+)\/(\d+)\/api\/v1$/);
+  if (!match) return null;
+  let hostname;
+  try {
+    hostname = decodeURIComponent(match[1]);
+  } catch (_) {
+    return null;
+  }
+  const port = Number(match[2]);
+  if (!/^[A-Za-z0-9.-]+$/.test(hostname) || !Number.isInteger(port) || port < 1 || port > 65535) return null;
+  return { target: `https://${hostname}:${port}`, path: "/api/v1" };
+}
+
+module.exports = { DEFAULT_TARGET, getAgentProxyRoute, getProxyConfig };

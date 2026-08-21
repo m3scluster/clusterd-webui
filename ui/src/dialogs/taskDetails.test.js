@@ -5,6 +5,7 @@ import {
   sortTaskStatuses,
   taskAdvancedDetails,
   taskHealth,
+  taskSandboxHref,
 } from "./taskDetails";
 
 test("formats Mesos resources without treating MiB values as bytes", () => {
@@ -30,4 +31,27 @@ test("collects nested container status for the advanced section", () => {
   expect(taskAdvancedDetails({ statuses: [{ state: "TASK_RUNNING", timestamp: 20, container_status: { network_infos: [] } }] }))
     .toMatchObject({ status_containers: [{ state: "TASK_RUNNING", container_status: { network_infos: [] } }] });
   expect(taskAdvancedDetails(null)).toEqual({ container: null, discovery: null, status_containers: [] });
+});
+
+test("builds the sandbox link with an explicit executor id", () => {
+  expect(taskSandboxHref({
+    slave_id: "agent-1",
+    framework_id: "framework-1",
+    executor_id: "executor-1",
+    id: "task-1",
+  })).toBe("#/agents/agent-1/frameworks/framework-1/executors/executor-1/tasks/task-1/browse");
+});
+
+test("uses the task id for a default executor when executor_id is empty", () => {
+  expect(taskSandboxHref({
+    slave_id: "agent/1",
+    framework_id: "framework 1",
+    executor_id: "",
+    id: "task#1",
+  })).toBe("#/agents/agent%2F1/frameworks/framework%201/executors/task%231/tasks/task%231/browse");
+});
+
+test("does not build a sandbox link without all required identifiers", () => {
+  expect(taskSandboxHref(null)).toBeNull();
+  expect(taskSandboxHref({ slave_id: "agent", framework_id: "framework", id: "" })).toBeNull();
 });

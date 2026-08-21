@@ -1,0 +1,101 @@
+/**
+ * Utility functions for handling master server details and statuses
+ */
+
+/**
+ * Determines if a master server is the current leader based on its ID
+ * @param {Object} master - Master server object from Mesos state
+ * @param {string} leaderId - Current leader's ID from state data
+ * @returns {boolean} Whether the master is the leader
+ */
+export function isLeader(master, leaderId) {
+  return master.id === leaderId;
+}
+
+/**
+ * Normalizes and validates master status 
+ * @param {Object} master - Master server object from Mesos state
+ * @param {string} currentLeaderId - Current leader's ID from state data  
+ * @returns {Object} Formatted status information for the master
+ */
+export function getMasterStatus(master, currentLeaderId) {
+  // This is a simplified status - in real implementation, you'd want to check actual connectivity
+  const leader = isLeader(master, currentLeaderId);
+  
+  return {
+    id: master.id,
+    hostname: master.hostname || 'unknown',
+    isLeader: leader,
+    isOnline: true, // Simplified - would need more complex health checks
+    pid: master.pid || 'unknown',
+    version: master.version || 'unknown',
+    startTime: master.start_time ? new Date(master.start_time * 1000).toISOString() : null,
+    electedTime: master.elected_time ? new Date(master.elected_time * 1000).toISOString() : null
+  };
+}
+
+/**
+ * Extracts all masters from Mesos state data
+ * @param {Object} stateData - The complete state response from Mesos /state endpoint
+ * @returns {Array} List of master objects with normalized information
+ */
+export function extractMasters(stateData) {
+  // In standard Mesos, the masters array is likely in stateData.masters or stateData.cluster_info.masters
+  // For now we'll return the current master and its info if available
+  
+  const masters = [];
+  
+  // Current master information (this may be duplicated in some cases)
+  if (stateData.id && stateData.hostname) {
+    masters.push({
+      id: stateData.id,
+      hostname: stateData.hostname,
+      pid: stateData.pid,
+      version: stateData.version,
+      start_time: stateData.start_time,
+      elected_time: stateData.elected_time,
+      leader_info: stateData.leader_info
+    });
+  }
+  
+  // Additional masters might be in clusters information if available
+  if (stateData.cluster && Array.isArray(stateData.cluster.masters)) {
+    masters.push(...stateData.cluster.masters);
+  }
+  
+  // For now, we'll just return what's already in state - typically Mesos only provides 
+  // information about the currently contacted master, not all master servers unless
+  // a specific discovery endpoint exists (which is not common in standard distribution)
+  
+  return masters;
+}
+
+/**
+ * Formats cluster information for display
+ * @param {Object} stateData - The complete state response from Mesos /state endpoint
+ * @returns {Object} Formatted cluster information
+ */
+export function formatClusterInfo(stateData) {
+  if (!stateData) return null;
+  
+  // If we don't have a full master list, we'll just show the current master data
+  const masters = extractMasters(stateData);
+  
+  // Get first valid master (current one) to extract general information
+  let currentMaster = null;
+  if (masters.length > 0) {
+    // Find the master that matches current state context or just use the first one
+    currentMaster = masters[0];
+  }
+  
+  return {
+    cluster: stateData.cluster || 'unknown',
+    version: stateData.version || 'unknown',
+    startTime: stateData.start_time ? new Date(stateData.start_time * 1000).toISOString() : null,
+    leader: stateData.leader || null,
+    currentLeaderId: stateData.leader_info?.id || null,
+    masters: masters,
+    masterCount: masters.length,
+    isLeader: currentMaster && stateData.id === (stateData.leader_info?.id || null)
+  };
+}

@@ -10,6 +10,7 @@ import {
   Divider,
   Grid,
   IconButton,
+  Link,
   Paper,
   Stack,
   Table,
@@ -20,6 +21,9 @@ import {
   Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import TerminalIcon from "@mui/icons-material/Terminal";
+import LogViewerDialog from "../logs/LogViewerDialog";
+import { latestTaskContainerId } from "../logs/logApi";
 import {
   formatTaskResource,
   formatTaskTimestamp,
@@ -27,6 +31,7 @@ import {
   sortTaskStatuses,
   taskAdvancedDetails,
   taskHealth,
+  taskSandboxHref,
 } from "./taskDetails";
 
 const EMPTY = "—";
@@ -58,11 +63,15 @@ function ResourceTile({ label, allocated, limit }) {
 }
 
 export default function TaskDetailsDialog({ open, task, onClose }) {
+  const [logsOpen, setLogsOpen] = React.useState(false);
   const statuses = sortTaskStatuses(task?.statuses);
   const advanced = taskAdvancedDetails(task);
   const latestState = task?.state || statuses.at(-1)?.state || EMPTY;
+  const sandboxHref = taskSandboxHref(task);
+  const canReadLogs = Boolean(task?._agent && latestTaskContainerId(task));
 
   return (
+    <>
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg" scroll="paper">
       <DialogTitle sx={{ pr: 7 }}>
         <Typography variant="overline" color="primary.light">Task details</Typography>
@@ -98,6 +107,13 @@ export default function TaskDetailsDialog({ open, task, onClose }) {
                 <Grid item xs={12} md={4}><DetailField label="Framework ID" mono>{task.framework_id}</DetailField></Grid>
                 <Grid item xs={12} md={4}><DetailField label="Agent ID" mono>{task.slave_id}</DetailField></Grid>
                 <Grid item xs={12} md={4}><DetailField label="Executor ID" mono>{task.executor_id}</DetailField></Grid>
+                <Grid item xs={12}><DetailField label="Sandbox">{sandboxHref ? <Link href={sandboxHref}>Open sandbox</Link> : EMPTY}</DetailField></Grid>
+                <Grid item xs={12}>
+                  <Button startIcon={<TerminalIcon />} variant="outlined" disabled={!canReadLogs} onClick={() => setLogsOpen(true)}>
+                    View task logs
+                  </Button>
+                  {!canReadLogs && <Typography color="text.secondary" variant="caption" sx={{ ml: 1 }}>No active container log is available.</Typography>}
+                </Grid>
               </Grid>
             </Box>
 
@@ -146,5 +162,14 @@ export default function TaskDetailsDialog({ open, task, onClose }) {
       </DialogContent>
       <DialogActions><Button onClick={onClose}>Close</Button></DialogActions>
     </Dialog>
+    <LogViewerDialog
+      open={logsOpen}
+      onClose={() => setLogsOpen(false)}
+      kind="task"
+      title={`${task?.name || task?.id || "Task"} logs`}
+      agent={task?._agent}
+      task={task}
+    />
+    </>
   );
 }
