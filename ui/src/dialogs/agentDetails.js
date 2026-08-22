@@ -1,5 +1,12 @@
 const EMPTY = "—";
 
+export const AGENT_RESOURCE_TYPES = [
+  { name: "cpus", label: "CPU", shortLabel: "CPU" },
+  { name: "mem", label: "Memory", shortLabel: "MEM" },
+  { name: "disk", label: "Disk", shortLabel: "DISK" },
+  { name: "gpus", label: "GPUs", shortLabel: "GPU" },
+];
+
 function finiteNumber(value) {
   const number = Number(value);
   return Number.isFinite(number) ? number : 0;

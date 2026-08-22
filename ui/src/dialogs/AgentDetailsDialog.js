@@ -19,6 +19,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import TerminalIcon from "@mui/icons-material/Terminal";
 import LogViewerDialog from "../logs/LogViewerDialog";
 import {
+  AGENT_RESOURCE_TYPES,
   agentAdvancedDetails,
   agentResourceStats,
   formatAgentResource,
@@ -123,10 +124,11 @@ export default function AgentDetailsDialog({ open, agent, onClose }) {
             <Box>
               <Typography variant="h6" fontWeight={700} gutterBottom>Resources & utilization</Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6} lg={3}><ResourceCard agent={agent} name="cpus" label="CPU" /></Grid>
-                <Grid item xs={12} sm={6} lg={3}><ResourceCard agent={agent} name="mem" label="Memory" /></Grid>
-                <Grid item xs={12} sm={6} lg={3}><ResourceCard agent={agent} name="disk" label="Disk" /></Grid>
-                <Grid item xs={12} sm={6} lg={3}><ResourceCard agent={agent} name="gpus" label="GPUs" /></Grid>
+                {AGENT_RESOURCE_TYPES.map(({ name, label }) => (
+                  <Grid item xs={12} sm={6} lg={3} key={name}>
+                    <ResourceCard agent={agent} name={name} label={label} />
+                  </Grid>
+                ))}
               </Grid>
               <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
                 <Grid item xs={12} md={6}><DetailField label="Available port range" mono>{formatAgentResource("ports", agent.resources?.ports)}</DetailField></Grid>

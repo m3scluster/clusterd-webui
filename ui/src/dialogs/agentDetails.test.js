@@ -1,4 +1,5 @@
 import {
+  AGENT_RESOURCE_TYPES,
   agentAdvancedDetails,
   agentResourceStats,
   formatAgentResource,
@@ -44,5 +45,41 @@ test("advanced details are null-safe", () => {
     offered_resources_full: [],
     reserved_resources: {},
     used_resources_full: [],
+  });
+});
+
+test("defines CPU, memory, disk and GPU for agent resource views", () => {
+  expect(AGENT_RESOURCE_TYPES.map(({ name }) => name)).toEqual(["cpus", "mem", "disk", "gpus"]);
+});
+
+test("handles GPU resources properly in agentResourceStats", () => {
+  const agent = {
+    resources: { gpus: 2 },
+    used_resources: { gpus: 1 },
+    offered_resources: { gpus: 0.5 },
+  };
+
+  expect(agentResourceStats(agent, "gpus")).toEqual({
+    total: 2,
+    used: 1,
+    offered: 0.5,
+    available: 0.5,
+    utilization: 50,
+  });
+});
+
+test("handles agent with no GPU resources", () => {
+  const agent = {
+    resources: { cpus: 4, mem: 8192 },
+    used_resources: { cpus: 2, mem: 4096 },
+    offered_resources: { cpus: 0.5, mem: 1024 },
+  };
+
+  expect(agentResourceStats(agent, "gpus")).toEqual({
+    total: 0,
+    used: 0,
+    offered: 0,
+    available: 0,
+    utilization: 0,
   });
 });
