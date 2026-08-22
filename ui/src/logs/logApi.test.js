@@ -28,10 +28,10 @@ test("calculates a bounded tail window", () => {
 test("builds development and production agent API endpoints", () => {
   const agent = { id: "agent/one", hostname: "agent-1.example", pid: "slave(1)@10.0.0.2:5051" };
   expect(agentApiEndpoint(agent, "development")).toBe("/agent-api/agent-1.example/5051/api/v1");
-  expect(agentApiEndpoint(agent, "production")).toBe("/agent-api/v1?agent_id=agent%2Fone");
+  expect(agentApiEndpoint(agent, "production")).toBe("//agent-1.example:5051/api/v1");
   expect(agentApiEndpoint({ hostname: "agent-1", port: 5052 }, "development")).toBe("/agent-api/agent-1/5052/api/v1");
   expect(agentApiEndpoint({ hostname: "bad/host", port: 5051 }, "development")).toBeNull();
-  expect(agentApiEndpoint({ hostname: "agent-1", port: 5051 }, "production")).toBeNull();
+  expect(agentApiEndpoint({ hostname: "agent-1", port: 5051 }, "production")).toBe("//agent-1:5051/api/v1");
 });
 
 test("extracts the latest available task container id", () => {
@@ -65,6 +65,17 @@ test("reads the last master log chunk after a metadata request", async () => {
   expect(JSON.parse(request.mock.calls[1][1].body)).toEqual(masterLogCall(4464, 65536));
 });
 
+test("reads agent logs from the production agent API with a complete call body", async () => {
+  const request = jest.fn().mockResolvedValue({ read_log: { stdout: { size: 0, data: "" } } });
+  const agent = { hostname: "agent-1.example", port: 5051 };
+
+  await readAgentLogTail(request, agent, "AGENT");
+
+  expect(request).toHaveBeenCalledTimes(1);
+  expect(request.mock.calls[0][0]).toBe("//agent-1.example:5051/api/v1");
+  expect(JSON.parse(request.mock.calls[0][1].body)).toEqual(agentLogCall({ source: "AGENT", length: 0 }));
+});
+
 test("reads independent stdout and stderr tails with one shared length", async () => {
   const request = jest.fn()
     .mockResolvedValueOnce({ read_log: { stdout: { size: 70000, data: "" }, stderr: { size: 10, data: "" } } })
@@ -74,6 +85,13 @@ test("reads independent stdout and stderr tails with one shared length", async (
     stdout: { size: 70000, offset: 4464, data: "out" },
     stderr: { size: 10, offset: 0, data: "err" },
   });
+  expect(request.mock.calls[0][0]).toBe("//agent-1:5051/api/v1");
+  expect(JSON.parse(request.mock.calls[0][1].body)).toEqual(agentLogCall({
+    source: "CONTAINER",
+    containerId: "container-1",
+    length: 0,
+  }));
+  expect(request.mock.calls[1][0]).toBe("//agent-1:5051/api/v1");
   expect(JSON.parse(request.mock.calls[1][1].body)).toEqual(agentLogCall({
     source: "CONTAINER",
     containerId: "container-1",

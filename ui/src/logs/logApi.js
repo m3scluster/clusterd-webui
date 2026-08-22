@@ -22,14 +22,14 @@ function agentPort(agent) {
 }
 
 export function agentApiEndpoint(agent, environment = process.env.NODE_ENV) {
-  if (environment !== "development") {
-    const id = typeof agent?.id === "string" ? agent.id : agent?.id?.value;
-    return id ? `/agent-api/v1?agent_id=${encodeURIComponent(id)}` : null;
-  }
-
   const hostname = agent?.hostname;
   const port = agentPort(agent);
   if (!hostname || !/^[A-Za-z0-9.-]+$/.test(hostname) || !port) return null;
+
+  if (environment !== "development") {
+    return `//${hostname}:${port}/api/v1`;
+  }
+
   return `/agent-api/${encodeURIComponent(hostname)}/${port}/api/v1`;
 }
 
