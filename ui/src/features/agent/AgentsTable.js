@@ -17,6 +17,8 @@ import {
 } from "@mui/material";
 import AgentDetailsDialog from "../../dialogs/AgentDetailsDialog";
 import { AGENT_RESOURCE_TYPES, agentResourceStats } from "../../dialogs/agentDetails";
+import { sortByTimestamp } from "../../libs/sortingHelpers";
+import { resourceIdFromHash } from "../../app/hashNavigation";
 
 function StatusChip({ agent }) {
   if (agent.active) return <Chip label="Active" color="success" size="small" />;
@@ -58,6 +60,17 @@ function ResourceUtilizationCell({ agent }) {
 
 export default function AgentsTable({ agents = [] }) {
   const [selectedAgent, setSelectedAgent] = useState(null);
+  const sortedAgents = sortByTimestamp(agents, "registered_time");
+
+  React.useEffect(() => {
+    const selectFromHash = () => {
+      const id = resourceIdFromHash(window.location.hash, "agents");
+      if (id) setSelectedAgent(agents.find((agent) => String(agent.id) === id) || null);
+    };
+    selectFromHash();
+    window.addEventListener("hashchange", selectFromHash);
+    return () => window.removeEventListener("hashchange", selectFromHash);
+  }, [agents]);
 
   return (
     <>
@@ -79,7 +92,7 @@ export default function AgentsTable({ agents = [] }) {
               {agents.length === 0 && (
                 <TableRow><TableCell colSpan={6} align="center" sx={{ py: 4, color: "text.secondary" }}>No agents.</TableCell></TableRow>
               )}
-              {agents.map((agent) => (
+              {sortedAgents.map((agent) => (
                 <TableRow
                   hover
                   key={agent.id}

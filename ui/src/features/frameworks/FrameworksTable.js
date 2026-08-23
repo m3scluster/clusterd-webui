@@ -22,9 +22,24 @@ import {
   frameworkTaskCounts,
   normalizeFrameworkRoles,
 } from "../../dialogs/frameworkDetails";
+import { sortByTimestamp } from "../../libs/sortingHelpers";
+import { resourceIdFromHash } from "../../app/hashNavigation";
 
 export default function FrameworksTable({ frameworks = [], title }) {
   const [selectedFramework, setSelectedFramework] = useState(null);
+
+  // Sort frameworks by newest-to-oldest based on registered_time
+  const sortedFrameworks = sortByTimestamp(frameworks, 'registered_time');
+
+  React.useEffect(() => {
+    const selectFromHash = () => {
+      const id = resourceIdFromHash(window.location.hash, "frameworks");
+      if (id) setSelectedFramework(frameworks.find((framework) => String(framework.id) === id) || null);
+    };
+    selectFromHash();
+    window.addEventListener("hashchange", selectFromHash);
+    return () => window.removeEventListener("hashchange", selectFromHash);
+  }, [frameworks]);
 
   return (
     <>
@@ -47,12 +62,12 @@ export default function FrameworksTable({ frameworks = [], title }) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {frameworks.length === 0 && (
+              {sortedFrameworks.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={10} align="center" sx={{ py: 4, color: "text.secondary" }}>No frameworks.</TableCell>
                 </TableRow>
               )}
-              {frameworks.map((framework) => {
+              {sortedFrameworks.map((framework) => {
                 const status = frameworkStatus(framework);
                 const counts = frameworkTaskCounts(framework);
                 return (

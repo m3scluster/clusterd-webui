@@ -59,9 +59,8 @@ export function attachTasksToAgents(agents, frameworks) {
 }
 
 export function visibleAgentTasks(tasks) {
-  return (Array.isArray(tasks) ? tasks : []).filter((task) => (
-    task?.state !== "TASK_FAILED" && task?.state !== "TASK_FINISHED"
-  ));
+  const activeStates = new Set(["TASK_RUNNING", "TASK_STARTING", "TASK_STAGING"]);
+  return (Array.isArray(tasks) ? tasks : []).filter((task) => activeStates.has(task?.state));
 }
 
 export function agentAdvancedDetails(agent) {

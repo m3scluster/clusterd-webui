@@ -1,6 +1,11 @@
-import { hashFromTabValue, tabValueFromHash } from "./hashNavigation";
+import { hashFromTabValue, resourceIdFromHash, tabValueFromHash } from "./hashNavigation";
 
 describe("Mesos hash navigation", () => {
+  test("extracts encoded framework and agent IDs from deep links", () => {
+    expect(resourceIdFromHash("#/frameworks/framework%201", "frameworks")).toBe("framework 1");
+    expect(resourceIdFromHash("#/agents/agent%2F1", "agents")).toBe("agent/1");
+    expect(resourceIdFromHash("#/tasks/task-1", "agents")).toBeNull();
+  });
   test.each([
     ["", 0],
     ["#", 0],

@@ -14,6 +14,11 @@ jest.mock("@mui/material", () => {
 
 jest.mock("../logs/LogViewerDialog", () => () => null);
 jest.mock("../shell/TaskShellDialog", () => ({ open }) => open ? <div data-testid="task-shell" /> : null);
+jest.mock("../auth/AuthContext", () => ({
+  useAuth: () => ({
+    request: jest.fn().mockResolvedValue({ frameworks: [], completed_frameworks: [], slaves: [] }),
+  }),
+}));
 
 let container;
 let root;
@@ -71,4 +76,76 @@ test("offers a task shell when an agent and nested container are available", () 
   expect(shellButton.disabled).toBe(false);
   act(() => shellButton.dispatchEvent(new MouseEvent("click", { bubbles: true })));
   expect(container.querySelector('[data-testid="task-shell"]')).not.toBeNull();
+});
+
+test("shows clickable links for Framework ID and Agent ID when they exist", () => {
+  act(() => {
+    root.render(
+      <TaskDetailsDialog
+        open
+        onClose={() => {}}
+        task={{
+          id: "task-1",
+          name: "Synthetic task",
+          framework_id: "framework-123",
+          slave_id: "agent-456",
+          _agent: { id: "agent-456", hostname: "agent-456.example" },
+        }}
+      />
+    );
+  });
+
+  // Should contain Framework ID with a link
+  expect(container.innerHTML).toContain('href="#/frameworks/framework-123"');
+
+  // Should contain Agent ID with a link
+  expect(container.innerHTML).toContain('href="#/agents/agent-456"');
+});
+
+test("does not navigate on hash when clicking framework or agent ID links in task details", () => {
+  const originalPushState = window.history.pushState;
+  const originalReplaceState = window.history.replaceState;
+
+  // Mock history methods to detect navigation
+  const pushStateMock = jest.fn();
+  const replaceStateMock = jest.fn();
+
+  window.history.pushState = pushStateMock;
+  window.history.replaceState = replaceStateMock;
+
+  act(() => {
+    root.render(
+      <TaskDetailsDialog
+        open
+        onClose={() => {}}
+        task={{
+          id: "task-1",
+          name: "Synthetic task",
+          framework_id: "framework-123",
+          slave_id: "agent-456",
+          _agent: { id: "agent-456", hostname: "agent-456.example" },
+        }}
+      />
+    );
+  });
+
+  // Test framework ID link click (should not call pushState/replaceState)
+  const frameworkLink = Array.from(container.querySelectorAll("a")).find((link) => link.textContent === "framework-123");
+  if (frameworkLink) {
+    act(() => frameworkLink.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+  }
+
+  // Test agent ID link click (should not call pushState/replaceState)
+  const agentLink = Array.from(container.querySelectorAll("a")).find((link) => link.textContent === "agent-456");
+  if (agentLink) {
+    act(() => agentLink.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+  }
+
+  // The links should not have triggered any navigation
+  expect(pushStateMock).not.toHaveBeenCalled();
+  expect(replaceStateMock).not.toHaveBeenCalled();
+
+  // Restore original history methods
+  window.history.pushState = originalPushState;
+  window.history.replaceState = originalReplaceState;
 });

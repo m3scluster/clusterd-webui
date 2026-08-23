@@ -1,6 +1,8 @@
 import {
   attachAgentsToFramework,
   attachAgentsToTasks,
+  agentHref,
+  frameworkHref,
   formatTaskResource,
   formatTaskTimestamp,
   normalizeTaskRoles,
@@ -83,6 +85,13 @@ test("uses the task id for a default executor when executor_id is empty", () => 
     executor_id: "",
     id: "task#1",
   })).toBe("#/agents/agent%2F1/frameworks/framework%201/executors/task%231/tasks/task%231/browse");
+});
+
+test("builds encoded framework and agent detail links", () => {
+  expect(frameworkHref("framework 1")).toBe("#/frameworks/framework%201");
+  expect(agentHref("agent/1")).toBe("#/agents/agent%2F1");
+  expect(frameworkHref(null)).toBeNull();
+  expect(agentHref("")).toBeNull();
 });
 
 test("does not build a sandbox link without all required identifiers", () => {

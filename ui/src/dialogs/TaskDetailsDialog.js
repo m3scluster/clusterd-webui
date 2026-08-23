@@ -2,7 +2,6 @@ import React from "react";
 import {
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -24,13 +23,19 @@ import CloseIcon from "@mui/icons-material/Close";
 import TerminalIcon from "@mui/icons-material/Terminal";
 import LogViewerDialog from "../logs/LogViewerDialog";
 import TaskShellDialog from "../shell/TaskShellDialog";
+import FrameworkDetailsDialog from "./FrameworkDetailsDialog";
+import AgentDetailsDialog from "./AgentDetailsDialog";
 import { latestTaskContainerId } from "../logs/logApi";
+import { StateBadge } from "../libs/functions";
+import { useAuth } from "../auth/AuthContext";
 import {
   formatTaskResource,
   formatTaskTimestamp,
   normalizeTaskRoles,
   sortTaskStatuses,
   taskAdvancedDetails,
+  agentHref,
+  frameworkHref,
   taskHealth,
   taskHost,
   taskSandboxHref,
@@ -65,14 +70,45 @@ function ResourceTile({ label, allocated, limit }) {
 }
 
 export default function TaskDetailsDialog({ open, task, onClose }) {
+  const { request } = useAuth();
   const [logsOpen, setLogsOpen] = React.useState(false);
   const [shellOpen, setShellOpen] = React.useState(false);
+  const [relatedFramework, setRelatedFramework] = React.useState(null);
+  const [relatedAgent, setRelatedAgent] = React.useState(null);
+
   const statuses = sortTaskStatuses(task?.statuses);
   const advanced = taskAdvancedDetails(task);
   const latestState = task?.state || statuses.at(-1)?.state || EMPTY;
   const sandboxHref = taskSandboxHref(task);
   const canReadLogs = Boolean(task?._agent && latestTaskContainerId(task));
   const canOpenShell = canReadLogs && Boolean(task?._agent?.hostname && task?._agent?.port);
+
+  const openFramework = async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    try {
+      const data = await request("/frameworks?order=dsc&limit=-1");
+      const frameworks = [...(data?.frameworks || []), ...(data?.completed_frameworks || [])];
+      setRelatedFramework(frameworks.find((framework) => String(framework.id) === String(task.framework_id)) || null);
+    } catch (_) {
+      setRelatedFramework(null);
+    }
+  };
+
+  const openAgent = async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (task._agent) {
+      setRelatedAgent(task._agent);
+      return;
+    }
+    try {
+      const data = await request("/slaves");
+      setRelatedAgent((data?.slaves || []).find((agent) => String(agent.id) === String(task.slave_id)) || null);
+    } catch (_) {
+      setRelatedAgent(null);
+    }
+  };
 
   return (
     <>
@@ -95,7 +131,7 @@ export default function TaskDetailsDialog({ open, task, onClose }) {
             <Box>
               <Typography variant="h6" fontWeight={700} gutterBottom>Overview</Typography>
               <Grid container spacing={2.5}>
-                <Grid item xs={12} sm={6} md={3}><DetailField label="State"><Chip size="small" color={latestState === "TASK_RUNNING" ? "success" : "default"} label={latestState.replace("TASK_", "")} /></DetailField></Grid>
+                <Grid item xs={12} sm={6} md={3}><DetailField label="State"><StateBadge state={latestState === EMPTY ? null : latestState} /></DetailField></Grid>
                 <Grid item xs={12} sm={6} md={3}><DetailField label="Health">{taskHealth(task)}</DetailField></Grid>
                 <Grid item xs={12} sm={6} md={3}><DetailField label="Role">{normalizeTaskRoles(task.role)}</DetailField></Grid>
                 <Grid item xs={12} sm={6} md={3}><DetailField label="Statuses">{statuses.length}</DetailField></Grid>
@@ -108,8 +144,8 @@ export default function TaskDetailsDialog({ open, task, onClose }) {
               <Typography variant="h6" fontWeight={700} gutterBottom>Identifiers</Typography>
               <Grid container spacing={2.5}>
                 <Grid item xs={12}><DetailField label="Task ID" mono>{task.id}</DetailField></Grid>
-                <Grid item xs={12} md={3}><DetailField label="Framework ID" mono>{task.framework_id}</DetailField></Grid>
-                <Grid item xs={12} md={3}><DetailField label="Agent ID" mono>{task.slave_id}</DetailField></Grid>
+                <Grid item xs={12} md={3}><DetailField label="Framework ID" mono>{frameworkHref(task.framework_id) ? <Link href={frameworkHref(task.framework_id)} onClick={openFramework}>{task.framework_id}</Link> : EMPTY}</DetailField></Grid>
+                <Grid item xs={12} md={3}><DetailField label="Agent ID" mono>{agentHref(task.slave_id) ? <Link href={agentHref(task.slave_id)} onClick={openAgent}>{task.slave_id}</Link> : EMPTY}</DetailField></Grid>
                 <Grid item xs={12} md={3}><DetailField label="Host">{taskHost(task)}</DetailField></Grid>
                 <Grid item xs={12} md={3}><DetailField label="Executor ID" mono>{task.executor_id}</DetailField></Grid>
                 <Grid item xs={12}><DetailField label="Sandbox">{sandboxHref ? <Link href={sandboxHref}>Open sandbox</Link> : EMPTY}</DetailField></Grid>
@@ -179,6 +215,9 @@ export default function TaskDetailsDialog({ open, task, onClose }) {
       task={task}
     />
     <TaskShellDialog open={shellOpen} task={task} onClose={() => setShellOpen(false)} />
+    <FrameworkDetailsDialog open={Boolean(relatedFramework)} framework={relatedFramework} onClose={() => setRelatedFramework(null)} />
+    <AgentDetailsDialog open={Boolean(relatedAgent)} agent={relatedAgent} onClose={() => setRelatedAgent(null)} />
+
     </>
   );
 }

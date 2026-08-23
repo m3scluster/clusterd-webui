@@ -3,7 +3,7 @@ import { Box, TextField } from "@mui/material";
 import { useAuth } from "../../auth/AuthContext";
 import TasksTable from "./TasksTable";
 import { attachAgentsToTasks } from "../../dialogs/taskDetails";
-import { filterFrameworkTasks } from "../../dialogs/frameworkDetails";
+import { filterFrameworkTasks, filterActiveTasks } from "../../dialogs/frameworkDetails";
 import { QueryClient, QueryClientProvider, useQuery} from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
@@ -39,6 +39,9 @@ function DataInner() {
   const visibleUnreachable = filterFrameworkTasks(unreachable, search);
   const visibleCompleted = filterFrameworkTasks(completed, search);
 
+  // Filter active tasks to remove terminal states from the "Active Tasks" table
+  const visibleActiveTasks = filterActiveTasks(visibleTasks);
+
   return (
     <Box sx={{ p: 2 }}>
       {isLoading && <Box>…Loading…</Box>}
@@ -58,7 +61,7 @@ function DataInner() {
         inputProps={{ "aria-label": "Search tasks by name or ID" }}
         sx={{ mb: 2 }}
       />
-      <TasksTable tasks={visibleTasks} title="Active Tasks"/>
+      <TasksTable tasks={visibleActiveTasks} title="Active Tasks"/>
       <p></p>
       <TasksTable tasks={visibleUnreachable} title="Unreachable Tasks"/>
       <p></p>

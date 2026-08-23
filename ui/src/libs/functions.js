@@ -1,4 +1,5 @@
 import React from "react";
+import { Chip } from "@mui/material";
 
 export function FormatTimeDifference(registeredTime) {
   const now = new Date();
@@ -37,11 +38,15 @@ export function FormatTimeDifference(registeredTime) {
 
 export function StateBadge({ state }) {
   if (!state) return null;
-  return (
-    <span className={`state-badge state-${state.toLowerCase()}`}>
-      {state}
-    </span>
-  );
+  const stateName = String(state).replace(/^TASK_/, "");
+  const color = state === "TASK_RUNNING"
+    ? "success"
+    : ["TASK_FAILED", "TASK_ERROR", "TASK_KILLED", "TASK_LOST"].includes(state)
+      ? "error"
+      : ["TASK_STARTING", "TASK_STAGING", "TASK_UNREACHABLE"].includes(state)
+        ? "warning"
+        : "default";
+  return <Chip label={stateName} color={color} size="small" />;
 }
 
 

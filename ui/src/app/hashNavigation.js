@@ -35,3 +35,16 @@ export function tabValueFromHash(hash) {
 export function hashFromTabValue(value) {
   return TAB_ROUTES.find((route) => route.value === value)?.hash || TAB_ROUTES[0].hash;
 }
+
+export function resourceIdFromHash(hash, resource) {
+  const parts = String(hash || "")
+    .replace(/^#\/?/, "")
+    .split("/");
+  if (parts[0].toLowerCase() !== String(resource || "").toLowerCase()) return null;
+  if (!parts[1]) return null;
+  try {
+    return decodeURIComponent(parts[1]);
+  } catch (_) {
+    return null;
+  }
+}

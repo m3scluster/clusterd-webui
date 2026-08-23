@@ -69,6 +69,16 @@ export function taskSandboxHref(task) {
   return `#/agents/${encode(agentId)}/frameworks/${encode(frameworkId)}/executors/${encode(executorId)}/tasks/${encode(taskId)}/browse`;
 }
 
+export function frameworkHref(frameworkId) {
+  if (!frameworkId) return null;
+  return `#/frameworks/${encodeURIComponent(String(frameworkId))}`;
+}
+
+export function agentHref(agentId) {
+  if (!agentId) return null;
+  return `#/agents/${encodeURIComponent(String(agentId))}`;
+}
+
 export function taskAdvancedDetails(task) {
   const value = task || {};
   const statusContainers = (value.statuses || [])

@@ -109,6 +109,23 @@
   color: white;
 }
 
+.app-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px 18px;
+  padding: 18px 24px;
+  border-top: 1px solid var(--clusterd-line);
+  color: var(--mui-palette-text-secondary, #8fa4c7);
+  text-align: center;
+}
+
+.app-footer a {
+  color: inherit;
+}
+
+
 .login-page {
   min-height: 100vh;
   display: grid;

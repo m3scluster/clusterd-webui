@@ -78,6 +78,17 @@ export function frameworkTaskPreview(tasks) {
     .slice(0, 10);
 }
 
+/**
+ * Filter out terminal/non-active task states from an array of tasks
+ * Active tasks are only those in TASK_RUNNING state
+ * @param {Array} tasks - Array of task objects with state property
+ * @returns {Array} Filtered array containing only active tasks (TASK_RUNNING)
+ */
+export function filterActiveTasks(tasks) {
+  const source = Array.isArray(tasks) ? tasks : [];
+  return source.filter((task) => task?.state === "TASK_RUNNING");
+}
+
 export function frameworkWebUiUrl(value) {
   if (typeof value !== "string" || !value.trim()) return null;
   try {

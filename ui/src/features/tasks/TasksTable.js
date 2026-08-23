@@ -17,6 +17,7 @@ import {
 import TaskDetailsDialog from "../../dialogs/TaskDetailsDialog";
 import { taskSandboxHref } from "../../dialogs/taskDetails";
 import { FormatTimeDifference, HealthBadge, StateBadge } from "../../libs/functions";
+import { sortByTimestampWithFallback } from "../../libs/sortingHelpers";
 import "../../app/App.css";
 
 function latestStatus(task) {
@@ -38,6 +39,9 @@ function taskStarted(task) {
 export default function TasksTable({ tasks = [], title, showFrameworkId = true }) {
   const [selectedTask, setSelectedTask] = useState(null);
 
+  // Sort tasks by newest-to-oldest based on latest status timestamp
+  const sortedTasks = sortByTimestampWithFallback(tasks, (task) => latestStatus(task)?.timestamp);
+
   return (
     <>
       <Paper className="table-card" elevation={0}>
@@ -58,10 +62,10 @@ export default function TasksTable({ tasks = [], title, showFrameworkId = true }
               </TableRow>
             </TableHead>
             <TableBody>
-              {tasks.length === 0 && (
+              {sortedTasks.length === 0 && (
                 <TableRow><TableCell colSpan={showFrameworkId ? 9 : 8} align="center" sx={{ py: 4, color: "text.secondary" }}>No tasks.</TableCell></TableRow>
               )}
-              {tasks.map((task) => {
+              {sortedTasks.map((task) => {
                 const sandboxHref = taskSandboxHref(task);
                 return (
                   <TableRow

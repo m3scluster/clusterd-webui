@@ -78,6 +78,25 @@ test("hides failed and finished tasks from the agent task table by default", () 
   expect(visibleAgentTasks(null)).toEqual([]);
 });
 
+test("only includes active lifecycle states in agent task list", () => {
+  const running = { id: "running", state: "TASK_RUNNING" };
+  const starting = { id: "starting", state: "TASK_STARTING" };
+  const staging = { id: "staging", state: "TASK_STAGING" };
+  const failed = { id: "failed", state: "TASK_FAILED" };
+  const finished = { id: "finished", state: "TASK_FINISHED" };
+
+  // Active lifecycle states remain visible; terminal states do not
+  expect(visibleAgentTasks([
+    running,
+    starting,
+    staging,
+    failed,
+    finished,
+  ])).toEqual([running, starting, staging]);
+
+  expect(visibleAgentTasks(null)).toEqual([]);
+});
+
 test("defines CPU, memory, disk and GPU for agent resource views", () => {
   expect(AGENT_RESOURCE_TYPES.map(({ name }) => name)).toEqual(["cpus", "mem", "disk", "gpus"]);
 });

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AppBar, Box, Button, Container, Stack, Tab, Tabs, Toolbar, Typography } from "@mui/material";
+import { AppBar, Box, Button, Container, Link, Stack, Tab, Tabs, Toolbar, Typography } from "@mui/material";
 import Tasks from "../features/tasks/Tasks";
 import Agents from "../features/agent/Agents";
 import Home from "../Home";
@@ -9,6 +9,21 @@ import Logo from "./Logo";
 import { useAuth } from "../auth/AuthContext";
 import ThemeToggle from "./ThemeToggle";
 import { hashFromTabValue, tabValueFromHash } from "./hashNavigation";
+
+const WEBUI_VERSION = process.env.REACT_APP_VERSION || "development";
+
+function Footer() {
+  return (
+    <Box component="footer" className="app-footer">
+      <Typography variant="body2" component="span" fontWeight={700}>ClusterD WebUI</Typography>
+      <Typography variant="body2" component="span">v{WEBUI_VERSION}</Typography>
+      <Link href="https://github.com/m3scluster/clusterd-webui/blob/master/LICENSE" target="_blank" rel="noreferrer">EUPL 1.2</Link>
+      <Typography variant="body2" component="span">© 2026 AVENTER</Typography>
+      <Link href="https://github.com/m3scluster/clusterd-webui" target="_blank" rel="noreferrer">GitHub repository</Link>
+      <Typography variant="body2" component="span">Apache Mesos® © Apache Software Foundation</Typography>
+    </Box>
+  );
+}
 
 export default function MainMenu() {
   const [tabValue, setTabValue] = useState(() => tabValueFromHash(window.location.hash));
@@ -27,7 +42,7 @@ export default function MainMenu() {
   if (!isAuthenticated) return <Home />;
 
   return (
-    <Box minHeight="100vh">
+    <Box minHeight="100vh" display="flex" flexDirection="column">
       <AppBar position="static" elevation={0}>
         <Toolbar>
           <Logo />
@@ -54,13 +69,14 @@ export default function MainMenu() {
           <Tab label="Master details" value={4} href={hashFromTabValue(4)} />
         </Tabs>
       </AppBar>
-      <Container maxWidth="xl" sx={{ py: 3 }}>
+      <Container maxWidth="xl" sx={{ py: 3, flex: 1 }}>
         {tabValue === 0 && <Home />}
         {tabValue === 1 && <Tasks />}
         {tabValue === 2 && <Frameworks />}
         {tabValue === 3 && <Agents />}
         {tabValue === 4 && <ClusterInfo />}
       </Container>
+      <Footer />
     </Box>
   );
 }
