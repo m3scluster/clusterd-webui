@@ -47,16 +47,20 @@ export function createSessionContainerId(parent, uuid) {
   return { value: `webui-shell-${uuid}`, parent };
 }
 
-export function launchShellCall(containerId) {
+export const TASK_SHELLS = ["/bin/sh", "/bin/bash"];
+
+export function launchShellCall(containerId, shellPath = "/bin/sh") {
+  const selectedShell = TASK_SHELLS.includes(shellPath) ? shellPath : "/bin/sh";
   return {
     type: "LAUNCH_NESTED_CONTAINER_SESSION",
     launch_nested_container_session: {
       container_id: containerId,
       command: {
-        value: "/bin/sh",
-        arguments: ["/bin/sh", "-i"],
+        value: selectedShell,
+        arguments: [selectedShell, "-i"],
         shell: false,
       },
+      container: { type: "MESOS", tty_info: {} },
     },
   };
 }
@@ -98,7 +102,7 @@ async function requireSuccessfulResponse(response) {
   throw new Error(message);
 }
 
-export async function launchTaskShell(request, endpoint, authHeader, containerId, signal) {
+export async function launchTaskShell(request, endpoint, authHeader, containerId, signal, shellPath = "/bin/sh") {
   const response = await request(endpoint, {
     method: "POST",
     headers: {
@@ -107,7 +111,7 @@ export async function launchTaskShell(request, endpoint, authHeader, containerId
       "Content-Type": "application/json",
       "Message-Accept": "application/json",
     },
-    body: JSON.stringify(launchShellCall(containerId)),
+    body: JSON.stringify(launchShellCall(containerId, shellPath)),
     signal,
   });
   return requireSuccessfulResponse(response);

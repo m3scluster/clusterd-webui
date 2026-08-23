@@ -8,6 +8,10 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
   Stack,
   TextField,
   Typography,
@@ -19,6 +23,7 @@ import {
   launchTaskShell,
   readProcessIOStream,
   sendTaskShellInput,
+  TASK_SHELLS,
 } from "./taskExecApi";
 
 function sessionUuid() {
@@ -33,6 +38,7 @@ export default function TaskShellDialog({ open, task, onClose }) {
   const [error, setError] = React.useState("");
   const [connecting, setConnecting] = React.useState(false);
   const [connected, setConnected] = React.useState(false);
+  const [shellPath, setShellPath] = React.useState("/bin/sh");
   const sessionRef = React.useRef(null);
   const controllerRef = React.useRef(null);
   const outputRef = React.useRef(null);
@@ -55,14 +61,25 @@ export default function TaskShellDialog({ open, task, onClose }) {
     setConnecting(true);
     setConnected(false);
 
-    launchTaskShell(fetch, endpoint, authHeader, session, controller.signal)
+    launchTaskShell(fetch, endpoint, authHeader, session, controller.signal, shellPath)
       .then((response) => {
         if (controller.signal.aborted) return;
         setConnecting(false);
         setConnected(true);
-        return readProcessIOStream(response.body, ({ data }) => {
+        const outputPromise = readProcessIOStream(response.body, ({ data }) => {
           setOutput((current) => current + data);
         });
+        sendTaskShellInput(
+          fetch,
+          endpoint,
+          authHeader,
+          session,
+          "printf 'ClusterD task shell ready\\n'\n",
+          controller.signal,
+        ).catch((shellError) => {
+          if (!controller.signal.aborted) setError(shellError.message || "The task shell input could not be initialized.");
+        });
+        return outputPromise;
       })
       .then(() => {
         if (!controller.signal.aborted) setConnected(false);
@@ -79,7 +96,7 @@ export default function TaskShellDialog({ open, task, onClose }) {
       controllerRef.current = null;
       sessionRef.current = null;
     };
-  }, [authHeader, open, task]);
+  }, [authHeader, open, shellPath, task]);
 
   React.useEffect(() => {
     if (outputRef.current) outputRef.current.scrollTop = outputRef.current.scrollHeight;
@@ -126,6 +143,18 @@ export default function TaskShellDialog({ open, task, onClose }) {
           {output || (connecting ? "Connecting to task shell…" : "No shell output.")}
         </Box>
         <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+          <FormControl size="small" sx={{ minWidth: 140 }}>
+            <InputLabel id="task-shell-path-label">Shell</InputLabel>
+            <Select
+              labelId="task-shell-path-label"
+              label="Shell"
+              value={shellPath}
+              disabled={connecting || connected}
+              onChange={(event) => setShellPath(event.target.value)}
+            >
+              {TASK_SHELLS.map((path) => <MenuItem key={path} value={path}>{path}</MenuItem>)}
+            </Select>
+          </FormControl>
           <TextField
             fullWidth
             size="small"

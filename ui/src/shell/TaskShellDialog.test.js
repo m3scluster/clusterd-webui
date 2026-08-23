@@ -1,7 +1,7 @@
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import TaskShellDialog from "./TaskShellDialog";
-import { launchTaskShell, readProcessIOStream } from "./taskExecApi";
+import { launchTaskShell, readProcessIOStream, sendTaskShellInput } from "./taskExecApi";
 
 jest.mock("../auth/AuthContext", () => ({
   useAuth: () => ({ authHeader: "Basic synthetic" }),
@@ -65,6 +65,8 @@ test("opens an authenticated shell session and renders streamed output", async (
 
   await act(async () => {
     root.render(<TaskShellDialog open task={task} onClose={() => {}} />);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
   });
 
   expect(launchTaskShell).toHaveBeenCalledWith(
@@ -73,8 +75,17 @@ test("opens an authenticated shell session and renders streamed output", async (
     "Basic synthetic",
     { value: "webui-shell-synthetic-uuid", parent: { value: "task-container" } },
     expect.anything(),
+    "/bin/sh",
   );
   expect(readProcessIOStream).toHaveBeenCalled();
+  expect(sendTaskShellInput).toHaveBeenCalledWith(
+    global.fetch,
+    "//agent-1.example:5051/api/v1",
+    "Basic synthetic",
+    { value: "webui-shell-synthetic-uuid", parent: { value: "task-container" } },
+    "printf 'ClusterD task shell ready\\n'\n",
+    expect.anything(),
+  );
   expect(container.textContent).toContain("Task shell");
   expect(container.textContent).toContain("synthetic-shell-output");
 });

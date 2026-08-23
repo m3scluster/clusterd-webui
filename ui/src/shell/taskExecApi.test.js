@@ -9,6 +9,7 @@ import {
   readProcessIOStream,
   recordIOEncode,
   sendTaskShellInput,
+  TASK_SHELLS,
 } from "./taskExecApi";
 
 const parent = { value: "synthetic-parent" };
@@ -24,6 +25,7 @@ test("builds a nested interactive shell session under the task container", () =>
         arguments: ["/bin/sh", "-i"],
         shell: false,
       },
+      container: { type: "MESOS", tty_info: {} },
     },
   });
 });
@@ -33,6 +35,16 @@ test("creates a unique nested session id without losing the task container hiera
     value: "webui-shell-synthetic-uuid",
     parent,
   });
+});
+
+test("builds a bash shell command when bash is selected", () => {
+  expect(TASK_SHELLS).toEqual(["/bin/sh", "/bin/bash"]);
+  expect(launchShellCall(session, "/bin/bash").launch_nested_container_session.command).toEqual({
+    value: "/bin/bash",
+    arguments: ["/bin/bash", "-i"],
+    shell: false,
+  });
+  expect(launchShellCall(session, "/bin/zsh").launch_nested_container_session.command.value).toBe("/bin/sh");
 });
 
 test("encodes the container handshake and stdin as RecordIO", () => {
