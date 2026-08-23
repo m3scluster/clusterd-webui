@@ -23,6 +23,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import TerminalIcon from "@mui/icons-material/Terminal";
 import LogViewerDialog from "../logs/LogViewerDialog";
+import TaskShellDialog from "../shell/TaskShellDialog";
 import { latestTaskContainerId } from "../logs/logApi";
 import {
   formatTaskResource,
@@ -31,6 +32,7 @@ import {
   sortTaskStatuses,
   taskAdvancedDetails,
   taskHealth,
+  taskHost,
   taskSandboxHref,
 } from "./taskDetails";
 
@@ -64,11 +66,13 @@ function ResourceTile({ label, allocated, limit }) {
 
 export default function TaskDetailsDialog({ open, task, onClose }) {
   const [logsOpen, setLogsOpen] = React.useState(false);
+  const [shellOpen, setShellOpen] = React.useState(false);
   const statuses = sortTaskStatuses(task?.statuses);
   const advanced = taskAdvancedDetails(task);
   const latestState = task?.state || statuses.at(-1)?.state || EMPTY;
   const sandboxHref = taskSandboxHref(task);
   const canReadLogs = Boolean(task?._agent && latestTaskContainerId(task));
+  const canOpenShell = canReadLogs && Boolean(task?._agent?.hostname && task?._agent?.port);
 
   return (
     <>
@@ -104,13 +108,17 @@ export default function TaskDetailsDialog({ open, task, onClose }) {
               <Typography variant="h6" fontWeight={700} gutterBottom>Identifiers</Typography>
               <Grid container spacing={2.5}>
                 <Grid item xs={12}><DetailField label="Task ID" mono>{task.id}</DetailField></Grid>
-                <Grid item xs={12} md={4}><DetailField label="Framework ID" mono>{task.framework_id}</DetailField></Grid>
-                <Grid item xs={12} md={4}><DetailField label="Agent ID" mono>{task.slave_id}</DetailField></Grid>
-                <Grid item xs={12} md={4}><DetailField label="Executor ID" mono>{task.executor_id}</DetailField></Grid>
+                <Grid item xs={12} md={3}><DetailField label="Framework ID" mono>{task.framework_id}</DetailField></Grid>
+                <Grid item xs={12} md={3}><DetailField label="Agent ID" mono>{task.slave_id}</DetailField></Grid>
+                <Grid item xs={12} md={3}><DetailField label="Host">{taskHost(task)}</DetailField></Grid>
+                <Grid item xs={12} md={3}><DetailField label="Executor ID" mono>{task.executor_id}</DetailField></Grid>
                 <Grid item xs={12}><DetailField label="Sandbox">{sandboxHref ? <Link href={sandboxHref}>Open sandbox</Link> : EMPTY}</DetailField></Grid>
                 <Grid item xs={12}>
                   <Button startIcon={<TerminalIcon />} variant="outlined" disabled={!canReadLogs} onClick={() => setLogsOpen(true)}>
                     View task logs
+                  </Button>
+                  <Button variant="outlined" disabled={!canOpenShell} onClick={() => setShellOpen(true)}>
+                    Open task shell
                   </Button>
                   {!canReadLogs && <Typography color="text.secondary" variant="caption" sx={{ ml: 1 }}>No active container log is available.</Typography>}
                 </Grid>
@@ -170,6 +178,7 @@ export default function TaskDetailsDialog({ open, task, onClose }) {
       agent={task?._agent}
       task={task}
     />
+    <TaskShellDialog open={shellOpen} task={task} onClose={() => setShellOpen(false)} />
     </>
   );
 }

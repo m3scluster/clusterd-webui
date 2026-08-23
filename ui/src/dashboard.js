@@ -20,6 +20,20 @@ function resource(metrics, name) {
   return { total, used, idle: Math.max(total - used, 0), percent: Math.max(0, Math.min(percent, 100)) };
 }
 
+export function formatDashboardResource(value, kind) {
+  if (kind === "CPU" || kind === "GPUs") {
+    return Number(value).toLocaleString(undefined, { maximumFractionDigits: 1 });
+  }
+  const units = ["MiB", "GiB", "TiB"];
+  let amount = Number(value) || 0;
+  let unit = 0;
+  while (amount >= 1024 && unit < units.length - 1) {
+    amount /= 1024;
+    unit += 1;
+  }
+  return `${amount.toLocaleString(undefined, { maximumFractionDigits: 1 })} ${units[unit]}`;
+}
+
 export function formatUptime(seconds) {
   const total = Math.max(0, Math.floor(Number(seconds) || 0));
   const days = Math.floor(total / 86400);
@@ -62,6 +76,7 @@ export function deriveDashboard(summary = {}, state = {}, metrics = {}) {
       cpu: resource(metrics, "cpus"),
       memory: resource(metrics, "mem"),
       disk: resource(metrics, "disk"),
+      gpu: resource(metrics, "gpus"),
     },
     monitoring: {
       queuedMessages: number(metrics, "master/event_queue_messages"),

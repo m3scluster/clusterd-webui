@@ -15,7 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useAuth } from "./auth/AuthContext";
-import { deriveDashboard } from "./dashboard";
+import { deriveDashboard, formatDashboardResource } from "./dashboard";
 import ThemeToggle from "./app/ThemeToggle";
 
 function Login() {
@@ -90,18 +90,6 @@ function CountCard({ label, value, detail, tone = "primary" }) {
   );
 }
 
-function formatResource(value, kind) {
-  if (kind === "CPU") return Number(value).toLocaleString(undefined, { maximumFractionDigits: 1 });
-  const units = ["MiB", "GiB", "TiB"];
-  let amount = Number(value) || 0;
-  let unit = 0;
-  while (amount >= 1024 && unit < units.length - 1) {
-    amount /= 1024;
-    unit += 1;
-  }
-  return `${amount.toLocaleString(undefined, { maximumFractionDigits: 1 })} ${units[unit]}`;
-}
-
 function ResourceCard({ label, resource }) {
   return (
     <Card className="resource-card">
@@ -112,8 +100,8 @@ function ResourceCard({ label, resource }) {
         </Stack>
         <LinearProgress variant="determinate" value={resource.percent} sx={{ my: 2, height: 8, borderRadius: 4 }} />
         <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2">Used {formatResource(resource.used, label)}</Typography>
-          <Typography color="text.secondary" variant="body2">Total {formatResource(resource.total, label)}</Typography>
+          <Typography variant="body2">Used {formatDashboardResource(resource.used, label)}</Typography>
+          <Typography color="text.secondary" variant="body2">Total {formatDashboardResource(resource.total, label)}</Typography>
         </Stack>
       </CardContent>
     </Card>
@@ -191,9 +179,10 @@ function Dashboard() {
       <Box>
         <Typography className="section-title" variant="h6">Cluster capacity</Typography>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={4}><ResourceCard label="CPU" resource={resources.cpu} /></Grid>
-          <Grid item xs={12} md={4}><ResourceCard label="Memory" resource={resources.memory} /></Grid>
-          <Grid item xs={12} md={4}><ResourceCard label="Disk" resource={resources.disk} /></Grid>
+          <Grid item xs={12} md={3}><ResourceCard label="CPU" resource={resources.cpu} /></Grid>
+          <Grid item xs={12} md={3}><ResourceCard label="Memory" resource={resources.memory} /></Grid>
+          <Grid item xs={12} md={3}><ResourceCard label="Disk" resource={resources.disk} /></Grid>
+          <Grid item xs={12} md={3}><ResourceCard label="GPUs" resource={resources.gpu} /></Grid>
         </Grid>
       </Box>
 

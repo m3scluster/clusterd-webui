@@ -2,6 +2,7 @@ import { Box } from '@mui/material';
 import { useCallback, useState, useEffect } from 'react';
 import AgentsTable from './AgentsTable.js';
 import { useAuth } from "../../auth/AuthContext";
+import { attachTasksToAgents } from "../../dialogs/agentDetails";
 
 export default function Data() {
   const [loading, setLoading] = useState(false);  
@@ -12,8 +13,11 @@ export default function Data() {
   const getMesosAgents = useCallback(async () => {
     setLoading(true);
 
-    const data = await request("/slaves");
-    setAgents(data.slaves);
+    const [agentData, frameworkData] = await Promise.all([
+      request("/slaves"),
+      request("/frameworks?order=dsc&limit=-1"),
+    ]);
+    setAgents(attachTasksToAgents(agentData.slaves, frameworkData.frameworks));
     setLoading(false);
   }, [request]);
 

@@ -1,10 +1,13 @@
 import {
+  filterFrameworkTasks,
   formatFrameworkResource,
   formatFrameworkTimestamp,
   frameworkAdvancedDetails,
   frameworkRoles,
   frameworkStatus,
   frameworkTaskCounts,
+  frameworkTaskPreview,
+  frameworkTasks,
   frameworkWebUiUrl,
   normalizeFrameworkRoles,
 } from "./frameworkDetails";
@@ -46,6 +49,32 @@ test("counts task collections safely", () => {
   })).toEqual({ active: 1, completed: 2, unreachable: 0, executors: 1 });
   expect(frameworkTaskCounts()).toEqual({ active: 0, completed: 0, unreachable: 0, executors: 0 });
   expect(frameworkTaskCounts(null)).toEqual({ active: 0, completed: 0, unreachable: 0, executors: 0 });
+});
+
+test("collects every framework task collection in stable order", () => {
+  expect(frameworkTasks({
+    tasks: [{ id: "active" }],
+    unreachable_tasks: [{ id: "unreachable" }],
+    completed_tasks: [{ id: "completed" }],
+  }).map((task) => task.id)).toEqual(["active", "unreachable", "completed"]);
+  expect(frameworkTasks(null)).toEqual([]);
+});
+
+test("searches task names and IDs independently of task state", () => {
+  const tasks = [
+    { id: "alpha-1", name: "Worker", state: "TASK_RUNNING" },
+    { id: "beta-2", name: "Alpha cleanup", state: "TASK_FINISHED" },
+  ];
+  expect(filterFrameworkTasks(tasks, "ALPHA")).toEqual(tasks);
+  expect(filterFrameworkTasks(tasks, "beta-2")).toEqual([tasks[1]]);
+  expect(filterFrameworkTasks(tasks, "")).toEqual(tasks);
+  expect(filterFrameworkTasks(null, "alpha")).toEqual([]);
+});
+
+test("limits the framework preview to ten running tasks", () => {
+  const running = Array.from({ length: 12 }, (_value, index) => ({ id: `running-${index}`, state: "TASK_RUNNING" }));
+  const tasks = [{ id: "failed", state: "TASK_FAILED" }, ...running, { id: "finished", state: "TASK_FINISHED" }];
+  expect(frameworkTaskPreview(tasks)).toEqual(running.slice(0, 10));
 });
 
 test("only accepts HTTP framework Web UI links", () => {

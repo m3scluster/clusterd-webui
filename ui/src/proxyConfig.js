@@ -11,7 +11,7 @@ function getProxyConfig(env = process.env) {
 }
 
 function getAgentProxyRoute(pathname) {
-  const match = String(pathname || "").match(/^(?:\/agent-api)?\/([^/]+)\/(\d+)\/api\/v1$/);
+  const match = String(pathname || "").match(/^(?:\/agent-api)?\/([^/]+)\/(\d+)(\/api\/v1|\/state|\/files\/browse)$/);
   if (!match) return null;
   let hostname;
   try {
@@ -21,7 +21,7 @@ function getAgentProxyRoute(pathname) {
   }
   const port = Number(match[2]);
   if (!/^[A-Za-z0-9.-]+$/.test(hostname) || !Number.isInteger(port) || port < 1 || port > 65535) return null;
-  return { target: `https://${hostname}:${port}`, path: "/api/v1" };
+  return { target: `https://${hostname}:${port}`, path: match[3] };
 }
 
 module.exports = { DEFAULT_TARGET, getAgentProxyRoute, getProxyConfig };

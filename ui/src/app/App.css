@@ -92,7 +92,8 @@
   color: #080b14;
 }
 
-.state-task_staging {
+.state-task_staging,
+.state-task_starting {
   background-color: #f4a261;
   color: #080b14;
 }

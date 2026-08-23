@@ -23,10 +23,18 @@ test("validates and rewrites a development agent API route", () => {
     target: "https://agent-2:5052",
     path: "/api/v1",
   });
+  expect(getAgentProxyRoute("/agent-api/agent-1.example/5051/state")).toEqual({
+    target: "https://agent-1.example:5051",
+    path: "/state",
+  });
+  expect(getAgentProxyRoute("/agent-api/agent-1.example/5051/files/browse")).toEqual({
+    target: "https://agent-1.example:5051",
+    path: "/files/browse",
+  });
 });
 
 test("rejects unsafe or malformed agent proxy targets", () => {
   expect(getAgentProxyRoute("/agent-api/bad%2Fhost/5051/api/v1")).toBeNull();
   expect(getAgentProxyRoute("/agent-api/agent/99999/api/v1")).toBeNull();
-  expect(getAgentProxyRoute("/agent-api/agent/5051/state")).toBeNull();
+  expect(getAgentProxyRoute("/agent-api/agent/5051/not-allowed")).toBeNull();
 });

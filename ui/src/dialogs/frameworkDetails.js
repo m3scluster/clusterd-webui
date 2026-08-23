@@ -52,6 +52,32 @@ export function frameworkTaskCounts(framework = {}) {
   };
 }
 
+export function frameworkTasks(framework = {}) {
+  const value = framework || {};
+  const tasks = (collection) => Array.isArray(collection) ? collection : [];
+  return [
+    ...tasks(value.tasks),
+    ...tasks(value.unreachable_tasks),
+    ...tasks(value.completed_tasks),
+  ];
+}
+
+export function filterFrameworkTasks(tasks, query) {
+  const source = Array.isArray(tasks) ? tasks : [];
+  const search = String(query || "").trim().toLowerCase();
+  if (!search) return source;
+  return source.filter((task) => (
+    String(task?.id || "").toLowerCase().includes(search)
+    || String(task?.name || "").toLowerCase().includes(search)
+  ));
+}
+
+export function frameworkTaskPreview(tasks) {
+  return (Array.isArray(tasks) ? tasks : [])
+    .filter((task) => task?.state === "TASK_RUNNING")
+    .slice(0, 10);
+}
+
 export function frameworkWebUiUrl(value) {
   if (typeof value !== "string" || !value.trim()) return null;
   try {

@@ -13,17 +13,22 @@ import {
   IconButton,
   Paper,
   Stack,
+  TextField,
   Typography,
 } from "@mui/material";
 import {
   formatFrameworkResource,
   formatFrameworkTimestamp,
   frameworkAdvancedDetails,
+  filterFrameworkTasks,
   frameworkRoles,
   frameworkStatus,
   frameworkTaskCounts,
+  frameworkTaskPreview,
+  frameworkTasks,
   frameworkWebUiUrl,
 } from "./frameworkDetails";
+import TasksTable from "../features/tasks/TasksTable";
 
 const EMPTY = "—";
 
@@ -57,14 +62,21 @@ function ResourceTile({ framework, name, label }) {
 }
 
 export default function FrameworkDetailsDialog({ open, framework, onClose }) {
+  const [allTasksOpen, setAllTasksOpen] = React.useState(false);
+  const [taskSearch, setTaskSearch] = React.useState("");
   const status = frameworkStatus(framework);
   const counts = frameworkTaskCounts(framework);
+  const tasks = frameworkTasks(framework);
+  const runningTasks = tasks.filter((task) => task?.state === "TASK_RUNNING");
+  const previewTasks = frameworkTaskPreview(tasks);
+  const filteredTasks = filterFrameworkTasks(tasks, taskSearch);
   const roles = frameworkRoles(framework);
   const capabilities = Array.isArray(framework?.capabilities) ? framework.capabilities : [];
   const webUiUrl = frameworkWebUiUrl(framework?.webui_url);
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg" scroll="paper">
+    <>
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xl" scroll="paper">
       <DialogTitle sx={{ pr: 7 }}>
         <Typography variant="overline" color="primary.light">Framework details</Typography>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
@@ -141,6 +153,26 @@ export default function FrameworkDetailsDialog({ open, framework, onClose }) {
 
             <Divider />
 
+            <Box>
+              <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ sm: "center" }} gap={1} sx={{ mb: 1 }}>
+                <Typography variant="h6" fontWeight={700}>Running tasks</Typography>
+                <Button variant="outlined" onClick={() => setAllTasksOpen(true)}>View all tasks</Button>
+              </Stack>
+              {previewTasks.length ? (
+                <Box style={{ maxHeight: 520, overflowY: "auto" }}>
+                  <TasksTable
+                    tasks={previewTasks}
+                    title={`Running tasks (${previewTasks.length} of ${runningTasks.length})`}
+                    showFrameworkId={false}
+                  />
+                </Box>
+              ) : (
+                <Typography color="text.secondary">No running tasks reported for this framework.</Typography>
+              )}
+            </Box>
+
+            <Divider />
+
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6" fontWeight={700} gutterBottom>Roles</Typography>
@@ -169,5 +201,30 @@ export default function FrameworkDetailsDialog({ open, framework, onClose }) {
       </DialogContent>
       <DialogActions><Button onClick={onClose}>Close</Button></DialogActions>
     </Dialog>
+    <Dialog open={allTasksOpen} onClose={() => setAllTasksOpen(false)} fullWidth maxWidth="xl" scroll="paper">
+      <DialogTitle>All tasks for {framework?.name || framework?.id || "framework"}</DialogTitle>
+      <DialogContent dividers>
+        <TextField
+          fullWidth
+          size="small"
+          label="Search by task name or ID"
+          value={taskSearch}
+          onChange={(event) => setTaskSearch(event.target.value)}
+          inputProps={{ "aria-label": "Search all framework tasks" }}
+          sx={{ mb: 2 }}
+        />
+        {tasks.length ? (
+          <TasksTable
+            tasks={filteredTasks}
+            title={`All tasks (${filteredTasks.length}${taskSearch.trim() ? ` of ${tasks.length}` : ""})`}
+            showFrameworkId={false}
+          />
+        ) : (
+          <Typography color="text.secondary">No tasks reported for this framework.</Typography>
+        )}
+      </DialogContent>
+      <DialogActions><Button onClick={() => setAllTasksOpen(false)}>Close</Button></DialogActions>
+    </Dialog>
+    </>
   );
 }

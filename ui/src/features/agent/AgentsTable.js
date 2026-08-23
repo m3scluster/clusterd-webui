@@ -80,7 +80,12 @@ export default function AgentsTable({ agents = [] }) {
                 <TableRow><TableCell colSpan={6} align="center" sx={{ py: 4, color: "text.secondary" }}>No agents.</TableCell></TableRow>
               )}
               {agents.map((agent) => (
-                <TableRow hover key={agent.id}>
+                <TableRow
+                  hover
+                  key={agent.id}
+                  onClick={() => setSelectedAgent(agent)}
+                  sx={{ cursor: "pointer" }}
+                >
                   <TableCell>
                     <Tooltip title="View agent details">
                       <IconButton

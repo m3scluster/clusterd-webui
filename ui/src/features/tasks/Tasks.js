@@ -1,6 +1,9 @@
-import { Box } from "@mui/material";
+import React from "react";
+import { Box, TextField } from "@mui/material";
 import { useAuth } from "../../auth/AuthContext";
 import TasksTable from "./TasksTable";
+import { attachAgentsToTasks } from "../../dialogs/taskDetails";
+import { filterFrameworkTasks } from "../../dialogs/frameworkDetails";
 import { QueryClient, QueryClientProvider, useQuery} from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
@@ -23,15 +26,18 @@ const useMesosTasks = (request, authenticated) => {
 };
 
 function DataInner() {
+  const [search, setSearch] = React.useState("");
   const { request, isAuthenticated } = useAuth();
   const { data, isLoading, error } = useMesosTasks(request, isAuthenticated);
 
   const frameworks = data?.frameworks ?? [];
-  const agentsById = new Map((data?.agents ?? []).map((agent) => [agent.id, agent]));
-  const attachAgent = (tasks) => tasks.map((task) => ({ ...task, _agent: agentsById.get(task.slave_id) || null }));
-  const tasks = attachAgent(frameworks.flatMap((framework) => framework.tasks ?? []));
-  const unreachable = attachAgent(frameworks.flatMap((framework) => framework.unreachable_tasks ?? []));
-  const completed = attachAgent(frameworks.flatMap((framework) => framework.completed_tasks ?? []));
+  const agents = data?.agents ?? [];
+  const tasks = attachAgentsToTasks(frameworks.flatMap((framework) => framework.tasks ?? []), agents);
+  const unreachable = attachAgentsToTasks(frameworks.flatMap((framework) => framework.unreachable_tasks ?? []), agents);
+  const completed = attachAgentsToTasks(frameworks.flatMap((framework) => framework.completed_tasks ?? []), agents);
+  const visibleTasks = filterFrameworkTasks(tasks, search);
+  const visibleUnreachable = filterFrameworkTasks(unreachable, search);
+  const visibleCompleted = filterFrameworkTasks(completed, search);
 
   return (
     <Box sx={{ p: 2 }}>
@@ -43,12 +49,20 @@ function DataInner() {
         </Box>
       )}
 
+      <TextField
+        fullWidth
+        size="small"
+        label="Search tasks by name or ID"
+        value={search}
+        onChange={(event) => setSearch(event.target.value)}
+        inputProps={{ "aria-label": "Search tasks by name or ID" }}
+        sx={{ mb: 2 }}
+      />
+      <TasksTable tasks={visibleTasks} title="Active Tasks"/>
       <p></p>
-      <TasksTable tasks={tasks} title="Active Tasks"/>
+      <TasksTable tasks={visibleUnreachable} title="Unreachable Tasks"/>
       <p></p>
-      <TasksTable tasks={unreachable} title="Unreachable Tasks"/>
-      <p></p>
-      <TasksTable tasks={completed} title="Completed Tasks"/>
+      <TasksTable tasks={visibleCompleted} title="Completed Tasks"/>
 
     </Box>
   );

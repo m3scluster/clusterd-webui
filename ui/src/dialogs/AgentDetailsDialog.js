@@ -18,12 +18,14 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import TerminalIcon from "@mui/icons-material/Terminal";
 import LogViewerDialog from "../logs/LogViewerDialog";
+import TasksTable from "../features/tasks/TasksTable";
 import {
   AGENT_RESOURCE_TYPES,
   agentAdvancedDetails,
   agentResourceStats,
   formatAgentResource,
   formatAgentTimestamp,
+  visibleAgentTasks,
 } from "./agentDetails";
 
 const EMPTY = "—";
@@ -75,12 +77,13 @@ export default function AgentDetailsDialog({ open, agent, onClose }) {
   const [logsOpen, setLogsOpen] = React.useState(false);
   const status = agentStatus(agent);
   const advanced = agentAdvancedDetails(agent);
+  const tasks = visibleAgentTasks(agent?._tasks);
   const attributes = Object.entries(agent?.attributes || {});
   const capabilities = Array.isArray(agent?.capabilities) ? agent.capabilities : [];
 
   return (
     <>
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg" scroll="paper">
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xl" scroll="paper">
       <DialogTitle sx={{ pr: 7 }}>
         <Typography variant="overline" color="primary.light">Agent details</Typography>
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
@@ -135,6 +138,17 @@ export default function AgentDetailsDialog({ open, agent, onClose }) {
                 <Grid item xs={12} md={6}><DetailField label="Used ports" mono>{formatAgentResource("ports", agent.used_resources?.ports)}</DetailField></Grid>
               </Grid>
             </Box>
+
+            <Divider />
+
+            {tasks.length ? (
+              <TasksTable tasks={tasks} title={`Tasks on this agent (${tasks.length})`} showFrameworkId={false} />
+            ) : (
+              <Box>
+                <Typography variant="h6" fontWeight={700} gutterBottom>Tasks on this agent</Typography>
+                <Typography color="text.secondary">No active tasks are running on this agent.</Typography>
+              </Box>
+            )}
 
             <Divider />
 

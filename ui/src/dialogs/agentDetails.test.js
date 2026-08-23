@@ -2,8 +2,10 @@ import {
   AGENT_RESOURCE_TYPES,
   agentAdvancedDetails,
   agentResourceStats,
+  attachTasksToAgents,
   formatAgentResource,
   formatAgentTimestamp,
+  visibleAgentTasks,
 } from "./agentDetails";
 
 test("keeps Mesos memory and disk values in MiB", () => {
@@ -46,6 +48,34 @@ test("advanced details are null-safe", () => {
     reserved_resources: {},
     used_resources_full: [],
   });
+});
+
+test("attaches only current framework tasks to their agents", () => {
+  const agents = attachTasksToAgents(
+    [{ id: "agent-1", hostname: "agent-1.example" }, { id: "agent-2", hostname: "agent-2.example" }],
+    [{
+      tasks: [{ id: "active-1", slave_id: "agent-1" }, { id: "active-2", slave_id: "agent-2" }],
+      unreachable_tasks: [{ id: "unreachable", slave_id: "agent-1" }],
+      completed_tasks: [{ id: "completed", slave_id: "agent-1" }],
+    }],
+  );
+
+  expect(agents[0]._tasks.map((task) => task.id)).toEqual(["active-1"]);
+  expect(agents[0]._tasks[0]._agent).toMatchObject({ id: "agent-1", hostname: "agent-1.example" });
+  expect(agents[1]._tasks.map((task) => task.id)).toEqual(["active-2"]);
+  expect(attachTasksToAgents(null, null)).toEqual([]);
+});
+
+test("hides failed and finished tasks from the agent task table by default", () => {
+  const running = { id: "running", state: "TASK_RUNNING" };
+  const starting = { id: "starting", state: "TASK_STARTING" };
+  expect(visibleAgentTasks([
+    running,
+    { id: "failed", state: "TASK_FAILED" },
+    { id: "finished", state: "TASK_FINISHED" },
+    starting,
+  ])).toEqual([running, starting]);
+  expect(visibleAgentTasks(null)).toEqual([]);
 });
 
 test("defines CPU, memory, disk and GPU for agent resource views", () => {

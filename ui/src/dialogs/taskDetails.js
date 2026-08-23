@@ -26,6 +26,38 @@ export function taskHealth(task) {
   return "—";
 }
 
+export function taskHost(task) {
+  return task?._agent?.hostname || task?.hostname || "—";
+}
+
+function indexAgents(agents) {
+  return new Map(
+    (Array.isArray(agents) ? agents : []).map((agent) => [agent.id, agent]),
+  );
+}
+
+function attachIndexedAgents(tasks, agentsById) {
+  return (Array.isArray(tasks) ? tasks : []).map((task) => ({
+    ...task,
+    _agent: agentsById.get(task?.slave_id) || null,
+  }));
+}
+
+export function attachAgentsToTasks(tasks, agents) {
+  return attachIndexedAgents(tasks, indexAgents(agents));
+}
+
+export function attachAgentsToFramework(framework, agents) {
+  const value = framework || {};
+  const agentsById = indexAgents(agents);
+  return {
+    ...value,
+    tasks: attachIndexedAgents(value.tasks, agentsById),
+    unreachable_tasks: attachIndexedAgents(value.unreachable_tasks, agentsById),
+    completed_tasks: attachIndexedAgents(value.completed_tasks, agentsById),
+  };
+}
+
 export function taskSandboxHref(task) {
   const agentId = task?.slave_id;
   const frameworkId = task?.framework_id;

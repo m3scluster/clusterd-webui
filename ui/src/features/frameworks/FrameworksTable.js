@@ -56,7 +56,12 @@ export default function FrameworksTable({ frameworks = [], title }) {
                 const status = frameworkStatus(framework);
                 const counts = frameworkTaskCounts(framework);
                 return (
-                  <TableRow hover key={framework.id}>
+                  <TableRow
+                    hover
+                    key={framework.id}
+                    onClick={() => setSelectedFramework(framework)}
+                    sx={{ cursor: "pointer" }}
+                  >
                     <TableCell>
                       <Tooltip title="View framework details">
                         <IconButton

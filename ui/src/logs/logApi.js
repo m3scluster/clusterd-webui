@@ -33,14 +33,29 @@ export function agentApiEndpoint(agent, environment = process.env.NODE_ENV) {
   return `/agent-api/${encodeURIComponent(hostname)}/${port}/api/v1`;
 }
 
-export function latestTaskContainerId(task) {
+const AGENT_HTTP_PATHS = new Set(["/state", "/files/browse"]);
+
+export function agentHttpEndpoint(agent, path, environment = process.env.NODE_ENV) {
+  if (!AGENT_HTTP_PATHS.has(path)) return null;
+  const hostname = agent?.hostname;
+  const port = agentPort(agent);
+  if (!hostname || !/^[A-Za-z0-9.-]+$/.test(hostname) || !port) return null;
+  if (environment !== "development") return `//${hostname}:${port}${path}`;
+  return `/agent-api/${encodeURIComponent(hostname)}/${port}${path}`;
+}
+
+export function latestTaskContainer(task) {
   const statuses = Array.isArray(task?.statuses) ? task.statuses : [];
   for (let index = statuses.length - 1; index >= 0; index -= 1) {
     const id = statuses[index]?.container_status?.container_id;
-    const value = typeof id === "string" ? id : id?.value;
-    if (value) return value;
+    if (typeof id === "string" && id) return { value: id };
+    if (id?.value) return id;
   }
   return null;
+}
+
+export function latestTaskContainerId(task) {
+  return latestTaskContainer(task)?.value || null;
 }
 
 export function masterLogCall(offset, length) {

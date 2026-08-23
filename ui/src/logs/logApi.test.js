@@ -1,7 +1,9 @@
 import {
   agentApiEndpoint,
+  agentHttpEndpoint,
   agentLogCall,
   decodeLogData,
+  latestTaskContainer,
   latestTaskContainerId,
   masterLogCall,
   readAgentLogTail,
@@ -32,6 +34,9 @@ test("builds development and production agent API endpoints", () => {
   expect(agentApiEndpoint({ hostname: "agent-1", port: 5052 }, "development")).toBe("/agent-api/agent-1/5052/api/v1");
   expect(agentApiEndpoint({ hostname: "bad/host", port: 5051 }, "development")).toBeNull();
   expect(agentApiEndpoint({ hostname: "agent-1", port: 5051 }, "production")).toBe("//agent-1:5051/api/v1");
+  expect(agentHttpEndpoint(agent, "/state", "development")).toBe("/agent-api/agent-1.example/5051/state");
+  expect(agentHttpEndpoint(agent, "/files/browse", "production")).toBe("//agent-1.example:5051/files/browse");
+  expect(agentHttpEndpoint(agent, "/not-allowed", "production")).toBeNull();
 });
 
 test("extracts the latest available task container id", () => {
@@ -41,6 +46,12 @@ test("extracts the latest available task container id", () => {
     { container_status: { container_id: { value: "latest" } } },
   ] })).toBe("latest");
   expect(latestTaskContainerId(null)).toBeNull();
+});
+
+test("preserves the complete nested task container hierarchy for exec sessions", () => {
+  const container = { value: "task-container", parent: { value: "executor-container" } };
+  expect(latestTaskContainer({ statuses: [{ container_status: { container_id: container } }] })).toEqual(container);
+  expect(latestTaskContainer(null)).toBeNull();
 });
 
 test("creates exact READ_LOG operator calls", () => {

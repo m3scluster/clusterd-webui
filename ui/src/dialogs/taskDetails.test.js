@@ -1,10 +1,13 @@
 import {
+  attachAgentsToFramework,
+  attachAgentsToTasks,
   formatTaskResource,
   formatTaskTimestamp,
   normalizeTaskRoles,
   sortTaskStatuses,
   taskAdvancedDetails,
   taskHealth,
+  taskHost,
   taskSandboxHref,
 } from "./taskDetails";
 
@@ -19,6 +22,37 @@ test("normalizes missing fields and task roles", () => {
   expect(normalizeTaskRoles(["m3s", "production"])).toBe("m3s, production");
   expect(normalizeTaskRoles("m3s")).toBe("m3s");
   expect(taskHealth({ statuses: [{ healthy: false }] })).toBe("Unhealthy");
+});
+
+test("resolves the task host from its attached agent", () => {
+  expect(taskHost({ _agent: { hostname: "agent-1.example" }, hostname: "legacy.example" })).toBe("agent-1.example");
+  expect(taskHost({ hostname: "legacy.example" })).toBe("legacy.example");
+  expect(taskHost(null)).toBe("—");
+});
+
+test("attaches Mesos agents to tasks by slave id", () => {
+  expect(attachAgentsToTasks(
+    [{ id: "task-1", slave_id: "agent-1" }, { id: "task-2", slave_id: "missing" }],
+    [{ id: "agent-1", hostname: "agent-1.example" }],
+  )).toEqual([
+    { id: "task-1", slave_id: "agent-1", _agent: { id: "agent-1", hostname: "agent-1.example" } },
+    { id: "task-2", slave_id: "missing", _agent: null },
+  ]);
+  expect(attachAgentsToTasks(null, null)).toEqual([]);
+});
+
+test("attaches agents to every framework task collection", () => {
+  const framework = attachAgentsToFramework({
+    id: "framework-1",
+    tasks: [{ id: "active", slave_id: "agent-1" }],
+    unreachable_tasks: [{ id: "unreachable", slave_id: "agent-1" }],
+    completed_tasks: [{ id: "completed", slave_id: "agent-1" }],
+  }, [{ id: "agent-1", hostname: "agent-1.example" }]);
+
+  expect(framework.id).toBe("framework-1");
+  expect(framework.tasks[0]._agent.hostname).toBe("agent-1.example");
+  expect(framework.unreachable_tasks[0]._agent.hostname).toBe("agent-1.example");
+  expect(framework.completed_tasks[0]._agent.hostname).toBe("agent-1.example");
 });
 
 test("sorts status history chronologically without mutating the source", () => {

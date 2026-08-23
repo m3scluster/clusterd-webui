@@ -35,7 +35,7 @@ function taskStarted(task) {
   return timestamp ? `${FormatTimeDifference(timestamp)} ago` : "—";
 }
 
-export default function TasksTable({ tasks = [], title }) {
+export default function TasksTable({ tasks = [], title, showFrameworkId = true }) {
   const [selectedTask, setSelectedTask] = useState(null);
 
   return (
@@ -43,46 +43,66 @@ export default function TasksTable({ tasks = [], title }) {
       <Paper className="table-card" elevation={0}>
         <Typography className="table-title" variant="h6">{title}</Typography>
         <TableContainer component={Box}>
-          <Table sx={{ minWidth: 1050 }} size="small" aria-label={title}>
+          <Table sx={{ minWidth: showFrameworkId ? 950 : 760 }} size="small" aria-label={title}>
             <TableHead>
               <TableRow>
                 <TableCell width={52} aria-label="Actions" />
-                <TableCell>Framework ID</TableCell>
+                {showFrameworkId && <TableCell>Framework ID</TableCell>}
                 <TableCell>Task ID</TableCell>
                 <TableCell>Task name</TableCell>
                 <TableCell>Role</TableCell>
                 <TableCell>State</TableCell>
                 <TableCell>Health</TableCell>
                 <TableCell>Started</TableCell>
-                <TableCell>Host</TableCell>
                 <TableCell>Sandbox</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {tasks.length === 0 && (
-                <TableRow><TableCell colSpan={10} align="center" sx={{ py: 4, color: "text.secondary" }}>No tasks.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={showFrameworkId ? 9 : 8} align="center" sx={{ py: 4, color: "text.secondary" }}>No tasks.</TableCell></TableRow>
               )}
               {tasks.map((task) => {
                 const sandboxHref = taskSandboxHref(task);
                 return (
-                  <TableRow hover key={task.id}>
+                  <TableRow
+                    hover
+                    key={task.id}
+                    onClick={() => setSelectedTask(task)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setSelectedTask(task);
+                      }
+                    }}
+                    sx={{ cursor: "pointer" }}
+                    tabIndex={0}
+                    role="button"
+                  >
                     <TableCell>
                       <Tooltip title="View task details">
-                        <IconButton aria-label={`View details for ${task.name || task.id}`} size="small" onClick={() => setSelectedTask(task)}>
+                        <IconButton
+                          aria-label={`View details for ${task.name || task.id}`}
+                          size="small"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setSelectedTask(task);
+                          }}
+                        >
                           <VisibilityOutlinedIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                     </TableCell>
-                    <TableCell className="id-cell" title={task.framework_id}>{task.framework_id || "—"}</TableCell>
+                    {showFrameworkId && <TableCell className="id-cell" title={task.framework_id}>{task.framework_id || "—"}</TableCell>}
                     <TableCell className="id-cell" title={task.id}>{task.id || "—"}</TableCell>
                     <TableCell>{task.name || "—"}</TableCell>
                     <TableCell>{Array.isArray(task.role) ? task.role.join(", ") : task.role || "—"}</TableCell>
                     <TableCell><StateBadge state={task.state} /></TableCell>
                     <TableCell><HealthBadge health={taskHealth(task)} /></TableCell>
                     <TableCell sx={{ whiteSpace: "nowrap" }}>{taskStarted(task)}</TableCell>
-                    <TableCell>{task.hostname || "—"}</TableCell>
                     <TableCell>
-                      {sandboxHref ? <Link href={sandboxHref}>Sandbox</Link> : "—"}
+                      {sandboxHref ? (
+                        <Link href={sandboxHref} onClick={(event) => event.stopPropagation()}>Sandbox</Link>
+                      ) : "—"}
                     </TableCell>
                   </TableRow>
                 );

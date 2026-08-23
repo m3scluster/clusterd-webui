@@ -37,6 +37,33 @@ export function agentResourceStats(agent, name) {
   };
 }
 
+export function attachTasksToAgents(agents, frameworks) {
+  const tasksByAgent = new Map();
+  (Array.isArray(frameworks) ? frameworks : []).forEach((framework) => {
+    (Array.isArray(framework?.tasks) ? framework.tasks : []).forEach((task) => {
+      if (!task?.slave_id) return;
+      const tasks = tasksByAgent.get(task.slave_id) || [];
+      tasks.push(task);
+      tasksByAgent.set(task.slave_id, tasks);
+    });
+  });
+
+  return (Array.isArray(agents) ? agents : []).map((agent) => {
+    const taskAgent = { ...agent };
+    const tasks = (tasksByAgent.get(agent?.id) || []).map((task) => ({
+      ...task,
+      _agent: taskAgent,
+    }));
+    return { ...taskAgent, _tasks: tasks };
+  });
+}
+
+export function visibleAgentTasks(tasks) {
+  return (Array.isArray(tasks) ? tasks : []).filter((task) => (
+    task?.state !== "TASK_FAILED" && task?.state !== "TASK_FINISHED"
+  ));
+}
+
 export function agentAdvancedDetails(agent) {
   const value = agent || {};
   return {

@@ -15,17 +15,71 @@ modular, easy toextend, and uses react.
 
 ## Features
 
-- **Agents Management**
-  - Display all agents in a table
-  - Detailed information about resources, status, and IPs
+### Authentication and navigation
 
-- **Frameworks Management**
-  - Overview of registered frameworks
-  - Monitor resources and statuses
+- Authenticated sign-in against the ClusterD master using Mesos/ClusterD credentials.
+- Session-only authentication state with logout and automatic handling of expired credentials.
+- Hash-based navigation for the overview, tasks, frameworks, agents, and master details.
+- Responsive Material UI layout with light/dark theme switching.
 
-- **Tasks Management**
-  - Display all tasks with status history
-  - Detail view in a dialog
+### Cluster overview
+
+- Live cluster dashboard with automatic refresh.
+- Cluster name, hostname, Mesos version, leader status, and master uptime.
+- Counts for active agents, active frameworks, running tasks, pending tasks, failed tasks, and finished tasks.
+- Cluster capacity overview for CPUs, memory, disk, and GPUs.
+- Control-plane monitoring for queued messages, outstanding offers, allocator latency, system load, dispatches, and dropped messages.
+- Last-known data remains visible when a refresh fails, with a warning shown to the operator.
+
+### Agents
+
+- Table of registered agents with status and resource information.
+- Agent detail dialog with:
+  - identity, hostname, port, PID, Mesos version, and registration timestamps;
+  - CPU, memory, disk, GPU, and port resources;
+  - utilization percentages and progress indicators;
+  - attributes and capabilities;
+  - advanced resource data in a collapsed diagnostic section.
+- Tasks currently associated with an agent are shown below the resource overview.
+- Failed and finished tasks are hidden from the default agent task view.
+- Agent log viewer with bounded log tails, refresh, auto-refresh, and UTF-8 decoding.
+
+### Frameworks
+
+- Separate tables for active, inactive, and completed frameworks.
+- Framework rows open a detailed framework dialog while retaining the dedicated details action.
+- Framework detail dialog with:
+  - status, connection state, registration history, user, principal, and host;
+  - framework ID, checkpointing, failover timeout, recovery, and Web UI link;
+  - CPU, memory, disk, GPU, and port resources with used/offered values;
+  - task, unreachable-task, completed-task, and executor counts;
+  - roles and capabilities;
+  - advanced framework data in a collapsed diagnostic section.
+- Running-task preview limited to ten tasks with a dedicated scroll area.
+- Framework ID is omitted from task tables where the framework context is already known.
+- Separate **View all tasks** dialog with the complete task list and state-independent search by task name or task ID.
+
+### Tasks
+
+- Separate active, unreachable, and completed task tables.
+- Global case-insensitive search by task name or task ID across all task states.
+- Clickable task rows with keyboard support using Enter or Space.
+- Task detail dialog with:
+  - state, health, role, identifiers, framework, agent, host, and executor information;
+  - resource allocations and limits for CPU, memory, disk, GPUs, and ports;
+  - chronological status history;
+  - advanced container data.
+- Task log viewer for container stdout/stderr with bounded tails, refresh, auto-refresh, and stream selection.
+- Interactive task shell through the Mesos agent nested-container session API when agent and container information is available.
+- Task shell input is sent through the authenticated agent API and the session is aborted when the dialog closes.
+
+### API and deployment support
+
+- Same-origin production API requests suitable for serving from the ClusterD master.
+- Development proxy for the master and explicitly allowlisted agent endpoints.
+- Agent endpoint validation for hostname, port, and supported paths to avoid open proxy behavior.
+- Production assets are prepared below `app/static/` for the Mesos WebUI deployment layout.
+- Responsive tables and dialogs with deliberate empty, loading, and error states.
 
 ---
 
