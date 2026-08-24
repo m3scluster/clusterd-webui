@@ -15,6 +15,7 @@ describe("Mesos hash navigation", () => {
     ["#/frameworks", 2],
     ["#/agents", 3],
     ["#/master", 4],
+    ["#/offers", 5],
   ])("maps %p to tab %p", (hash, tab) => {
     expect(tabValueFromHash(hash)).toBe(tab);
   });
@@ -36,6 +37,7 @@ describe("Mesos hash navigation", () => {
     [2, "#/frameworks"],
     [3, "#/agents"],
     [4, "#/master"],
+    [5, "#/offers"],
     [99, "#/"],
   ])("maps tab %p to %p", (tab, hash) => {
     expect(hashFromTabValue(tab)).toBe(hash);

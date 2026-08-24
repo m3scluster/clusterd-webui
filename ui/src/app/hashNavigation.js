@@ -4,6 +4,7 @@ export const TAB_ROUTES = [
   { value: 2, hash: "#/frameworks" },
   { value: 3, hash: "#/agents" },
   { value: 4, hash: "#/master" },
+  { value: 5, hash: "#/offers" },
 ];
 
 function firstRouteSegment(hash) {
@@ -25,6 +26,8 @@ export function tabValueFromHash(hash) {
       return 3;
     case "master":
       return 4;
+    case "offers":
+      return 5;
     case "":
     case "index.html":
     default:

@@ -5,6 +5,7 @@ import Agents from "../features/agent/Agents";
 import Home from "../Home";
 import Frameworks from "../features/frameworks/Frameworks";
 import ClusterInfo from "../ClusterInfo";
+import Offers from "../features/offers/Offers";
 import Logo from "./Logo";
 import { useAuth } from "../auth/AuthContext";
 import ThemeToggle from "./ThemeToggle";
@@ -65,8 +66,9 @@ export default function MainMenu() {
           <Tab label="Overview" value={0} href={hashFromTabValue(0)} />
           <Tab label="Tasks" value={1} href={hashFromTabValue(1)} />
           <Tab label="Frameworks" value={2} href={hashFromTabValue(2)} />
+          <Tab label="Offers" value={5} href={hashFromTabValue(5)} />          
           <Tab label="Agents" value={3} href={hashFromTabValue(3)} />
-          <Tab label="Master details" value={4} href={hashFromTabValue(4)} />
+          <Tab label="Master details" value={4} href={hashFromTabValue(4)} />        
         </Tabs>
       </AppBar>
       <Container maxWidth="xl" sx={{ py: 3, flex: 1 }}>
@@ -75,6 +77,7 @@ export default function MainMenu() {
         {tabValue === 2 && <Frameworks />}
         {tabValue === 3 && <Agents />}
         {tabValue === 4 && <ClusterInfo />}
+        {tabValue === 5 && <Offers />}
       </Container>
       <Footer />
     </Box>
