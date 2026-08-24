@@ -26,7 +26,7 @@ function StatusChip({ agent }) {
   return <Chip label="Inactive" size="small" />;
 }
 
-function ResourceUtilizationCell({ agent }) {
+function ResourceAllocationCell({ agent }) {
   return (
     <Box
       sx={{
@@ -38,18 +38,18 @@ function ResourceUtilizationCell({ agent }) {
       }}
     >
       {AGENT_RESOURCE_TYPES.map(({ name, shortLabel }) => {
-        const utilization = agentResourceStats(agent, name).utilization;
+        const allocation = agentResourceStats(agent, name).allocation;
         return (
           <Box key={name} sx={{ minWidth: 0, display: "flex", alignItems: "center", gap: 0.5 }}>
             <Typography variant="caption" sx={{ minWidth: 30, textAlign: "left" }}>{shortLabel}</Typography>
             <LinearProgress
-              aria-label={`${shortLabel} utilization`}
+              aria-label={`${shortLabel} allocation`}
               variant="determinate"
-              value={utilization}
+              value={allocation}
               sx={{ flex: 1, height: 6, borderRadius: 3 }}
             />
             <Typography variant="caption" sx={{ minWidth: 34, textAlign: "right" }}>
-              {utilization.toFixed(0)}%
+              {allocation.toFixed(0)}%
             </Typography>
           </Box>
         );
@@ -85,7 +85,7 @@ export default function AgentsTable({ agents = [] }) {
                 <TableCell>Hostname</TableCell>
                 <TableCell sx={{ width: 110, whiteSpace: "nowrap" }}>Mesos version</TableCell>
                 <TableCell sx={{ width: 110, whiteSpace: "nowrap" }}>Status</TableCell>
-                <TableCell sx={{ width: 400, whiteSpace: "nowrap" }}>Resources & utilization</TableCell>
+                <TableCell sx={{ width: 400, whiteSpace: "nowrap" }}>Resources & Allocation</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -114,7 +114,7 @@ export default function AgentsTable({ agents = [] }) {
                   <TableCell>{agent.hostname || "—"}</TableCell>
                   <TableCell>{agent.version || "—"}</TableCell>
                   <TableCell><StatusChip agent={agent} /></TableCell>
-                  <TableCell><ResourceUtilizationCell agent={agent} /></TableCell>
+                  <TableCell><ResourceAllocationCell agent={agent} /></TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -15,7 +15,7 @@ test("keeps Mesos memory and disk values in MiB", () => {
   expect(formatAgentResource("cpus", null)).toBe("—");
 });
 
-test("calculates available resources and utilization", () => {
+test("calculates available resources and allocation", () => {
   const agent = {
     resources: { cpus: 4 },
     used_resources: { cpus: 1 },
@@ -26,12 +26,12 @@ test("calculates available resources and utilization", () => {
     used: 1,
     offered: 0.5,
     available: 2.5,
-    utilization: 25,
+    allocation: 25,
   });
 });
 
 test("resource calculations are safe for zero, missing and overcommitted values", () => {
-  expect(agentResourceStats(null, "mem")).toEqual({ total: 0, used: 0, offered: 0, available: 0, utilization: 0 });
+  expect(agentResourceStats(null, "mem")).toEqual({ total: 0, used: 0, offered: 0, available: 0, allocation: 0 });
   expect(agentResourceStats({ resources: { mem: 10 }, used_resources: { mem: 8 }, offered_resources: { mem: 5 } }, "mem").available).toBe(0);
 });
 
@@ -113,7 +113,7 @@ test("handles GPU resources properly in agentResourceStats", () => {
     used: 1,
     offered: 0.5,
     available: 0.5,
-    utilization: 50,
+    allocation: 50,
   });
 });
 
@@ -129,6 +129,6 @@ test("handles agent with no GPU resources", () => {
     used: 0,
     offered: 0,
     available: 0,
-    utilization: 0,
+    allocation: 0,
   });
 });

@@ -54,9 +54,9 @@ function ResourceCard({ agent, name, label }) {
     <Paper variant="outlined" sx={{ height: "100%", p: 2 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="baseline">
         <Typography fontWeight={700}>{label}</Typography>
-        <Typography color="primary" fontWeight={700}>{stats.utilization.toFixed(1)}%</Typography>
+        <Typography color="primary" fontWeight={700}>{stats.allocation.toFixed(1)}%</Typography>
       </Stack>
-      <LinearProgress variant="determinate" value={stats.utilization} sx={{ my: 1.5, height: 7, borderRadius: 4 }} />
+      <LinearProgress variant="determinate" value={stats.allocation} sx={{ my: 1.5, height: 7, borderRadius: 4 }} />
       <Grid container spacing={1.5}>
         <Grid item xs={6}><DetailField label="Total">{value(stats.total)}</DetailField></Grid>
         <Grid item xs={6}><DetailField label="Used">{value(stats.used)}</DetailField></Grid>
@@ -125,7 +125,7 @@ export default function AgentDetailsDialog({ open, agent, onClose }) {
             <Divider />
 
             <Box>
-              <Typography variant="h6" fontWeight={700} gutterBottom>Resources & utilization</Typography>
+              <Typography variant="h6" fontWeight={700} gutterBottom>Resources & Allocation</Typography>
               <Grid container spacing={2}>
                 {AGENT_RESOURCE_TYPES.map(({ name, label }) => (
                   <Grid item xs={12} sm={6} lg={3} key={name}>

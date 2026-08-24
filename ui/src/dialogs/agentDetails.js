@@ -33,7 +33,7 @@ export function agentResourceStats(agent, name) {
     used,
     offered,
     available: Math.max(total - used - offered, 0),
-    utilization: total > 0 ? Math.min(Math.max((used / total) * 100, 0), 100) : 0,
+    allocation: total > 0 ? Math.min(Math.max((used / total) * 100, 0), 100) : 0,
   };
 }
 

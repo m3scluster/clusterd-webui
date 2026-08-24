@@ -61,5 +61,5 @@ test("shows the tasks currently running on the agent", () => {
   expect(tasks?.textContent).not.toContain("failed-task");
   expect(tasks?.textContent).not.toContain("finished-task");
   expect(tasks?.dataset.frameworkId).toBe("false");
-  expect(container.textContent.indexOf("Resources & utilization")).toBeLessThan(container.textContent.indexOf("Tasks on this agent"));
+  expect(container.textContent.indexOf("Resources & allocation")).toBeLessThan(container.textContent.indexOf("Tasks on this agent"));
 });

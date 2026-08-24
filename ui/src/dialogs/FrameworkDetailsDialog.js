@@ -129,7 +129,7 @@ export default function FrameworkDetailsDialog({ open, framework, onClose }) {
             <Divider />
 
             <Box>
-              <Typography variant="h6" fontWeight={700} gutterBottom>Resources & utilization</Typography>
+              <Typography variant="h6" fontWeight={700} gutterBottom>Resources & Allocation</Typography>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6} lg={3}><ResourceTile framework={framework} name="cpus" label="CPU" /></Grid>
                 <Grid item xs={12} sm={6} lg={3}><ResourceTile framework={framework} name="mem" label="Memory" /></Grid>
