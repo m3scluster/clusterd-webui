@@ -16,9 +16,9 @@ import {
   Typography,
 } from "@mui/material";
 import AgentDetailsDialog from "../../dialogs/AgentDetailsDialog";
-import { AGENT_RESOURCE_TYPES, agentResourceStats } from "../../dialogs/agentDetails";
 import { sortByTimestamp } from "../../libs/sortingHelpers";
 import { resourceIdFromHash } from "../../app/hashNavigation";
+import { UTILIZATION_TYPES, utilizationColor, utilizationValue } from "../../utilization";
 
 function StatusChip({ agent }) {
   if (agent.active) return <Chip label="Active" color="success" size="small" />;
@@ -26,7 +26,7 @@ function StatusChip({ agent }) {
   return <Chip label="Inactive" size="small" />;
 }
 
-function ResourceAllocationCell({ agent }) {
+function UtilizationCell({ agent }) {
   return (
     <Box
       sx={{
@@ -37,19 +37,19 @@ function ResourceAllocationCell({ agent }) {
         rowGap: 0.75,
       }}
     >
-      {AGENT_RESOURCE_TYPES.map(({ name, shortLabel }) => {
-        const allocation = agentResourceStats(agent, name).allocation;
+      {UTILIZATION_TYPES.map(({ name, shortLabel }) => {
+        const value = utilizationValue(agent?._metrics, "slave", name);
         return (
           <Box key={name} sx={{ minWidth: 0, display: "flex", alignItems: "center", gap: 0.5 }}>
-            <Typography variant="caption" sx={{ minWidth: 30, textAlign: "left" }}>{shortLabel}</Typography>
+            <Typography variant="caption" sx={{ minWidth: 34, textAlign: "left" }}>{shortLabel}</Typography>
             <LinearProgress
-              aria-label={`${shortLabel} allocation`}
+              aria-label={`${shortLabel} utilization`}
               variant="determinate"
-              value={allocation}
-              sx={{ flex: 1, height: 6, borderRadius: 3 }}
+              value={value || 0}
+              sx={{ flex: 1, height: 6, borderRadius: 3, bgcolor: "action.hover", "& .MuiLinearProgress-bar": { bgcolor: utilizationColor(value) } }}
             />
             <Typography variant="caption" sx={{ minWidth: 34, textAlign: "right" }}>
-              {allocation.toFixed(0)}%
+              {value === null ? "—" : `${value.toFixed(0)}%`}
             </Typography>
           </Box>
         );
@@ -85,7 +85,7 @@ export default function AgentsTable({ agents = [] }) {
                 <TableCell>Hostname</TableCell>
                 <TableCell sx={{ width: 110, whiteSpace: "nowrap" }}>Mesos version</TableCell>
                 <TableCell sx={{ width: 110, whiteSpace: "nowrap" }}>Status</TableCell>
-                <TableCell sx={{ width: 400, whiteSpace: "nowrap" }}>Resources & Allocation</TableCell>
+                <TableCell sx={{ width: 400, whiteSpace: "nowrap" }}>Utilization</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -114,7 +114,7 @@ export default function AgentsTable({ agents = [] }) {
                   <TableCell>{agent.hostname || "—"}</TableCell>
                   <TableCell>{agent.version || "—"}</TableCell>
                   <TableCell><StatusChip agent={agent} /></TableCell>
-                  <TableCell><ResourceAllocationCell agent={agent} /></TableCell>
+                  <TableCell><UtilizationCell agent={agent} /></TableCell>
                 </TableRow>
               ))}
             </TableBody>

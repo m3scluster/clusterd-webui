@@ -4,6 +4,7 @@ import {
   Box,
   Button,
   Card,
+  CardActionArea,
   CardContent,
   Chip,
   CircularProgress,
@@ -15,8 +16,10 @@ import {
   Typography,
 } from "@mui/material";
 import { useAuth } from "./auth/AuthContext";
-import { deriveDashboard, formatDashboardResource } from "./dashboard";
+import { deriveDashboard, formatDashboardResource, aggregateAgentUtilization } from "./dashboard";
 import ThemeToggle from "./app/ThemeToggle";
+import { agentHttpEndpoint } from "./logs/logApi";
+import { UTILIZATION_TYPES, normalizeMetricsResponse, utilizationColor } from "./utilization";
 
 function Login() {
   const { login } = useAuth();
@@ -78,14 +81,16 @@ function Login() {
   );
 }
 
-function CountCard({ label, value, detail, tone = "primary" }) {
+function CountCard({ label, value, detail, tone = "primary", route }) {
   return (
     <Card className="metric-card">
-      <CardContent>
+      <CardActionArea component="a" href={route} aria-label={`Open ${label}`}>
+        <CardContent>
         <Typography color="text.secondary" variant="body2">{label}</Typography>
         <Typography color={`${tone}.main`} variant="h3" fontWeight={700}>{value}</Typography>
         <Typography color="text.secondary" variant="caption">{detail}</Typography>
-      </CardContent>
+        </CardContent>
+      </CardActionArea>
     </Card>
   );
 }
@@ -108,6 +113,25 @@ function ResourceCard({ label, resource }) {
   );
 }
 
+function UtilizationHeatmap({ values }) {
+  return (
+    <Box>
+      <Typography className="section-title" variant="h6">Live utilization heatmap</Typography>
+      <Grid container spacing={1.5}>
+        {UTILIZATION_TYPES.map(({ name, label }) => {
+          const value = values[name];
+          return <Grid item xs={6} sm={4} md={2.4} key={name}>
+            <Paper variant="outlined" sx={{ p: 2, textAlign: "center", borderTop: 6, borderColor: utilizationColor(value) }}>
+              <Typography color="text.secondary" variant="caption">{label}</Typography>
+              <Typography variant="h4" fontWeight={700}>{value === null ? "—" : `${value.toFixed(1)}%`}</Typography>
+            </Paper>
+          </Grid>;
+        })}
+      </Grid>
+    </Box>
+  );
+}
+
 function Dashboard() {
   const { request } = useAuth();
   const [dashboard, setDashboard] = useState(null);
@@ -118,12 +142,18 @@ function Dashboard() {
   const refresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      const [summary, state, metrics] = await Promise.all([
+      const [summary, state, metrics, agentData] = await Promise.all([
         request("/master/state-summary"),
         request("/state").catch(() => ({})),
         request("/metrics/snapshot"),
+        request("/slaves"),
       ]);
-      setDashboard(deriveDashboard(summary, state, metrics));
+      const agentMetrics = await Promise.all((agentData?.slaves || []).map(async (agent) => {
+        const endpoint = agentHttpEndpoint(agent, "/metrics/snapshot");
+        if (!endpoint) return null;
+        try { return normalizeMetricsResponse(await request(endpoint)); } catch (_) { return null; }
+      }));
+      setDashboard(deriveDashboard(summary, state, metrics, aggregateAgentUtilization(agentMetrics.filter(Boolean))));
       setUpdatedAt(new Date());
       setError("");
     } catch (refreshError) {
@@ -165,14 +195,15 @@ function Dashboard() {
           </Box>
         </Stack>
       </Paper>
+      <UtilizationHeatmap values={dashboard.utilization} />
 
       <Box>
         <Typography className="section-title" variant="h6">Workloads</Typography>
         <Grid container spacing={2}>
-          <Grid item xs={6} md={3}><CountCard label="Active agents" value={counts.agents} detail={`${counts.unreachableAgents} unreachable`} /></Grid>
-          <Grid item xs={6} md={3}><CountCard label="Active frameworks" value={counts.frameworks} detail={`${counts.connectedFrameworks} connected`} /></Grid>
-          <Grid item xs={6} md={3}><CountCard label="Running tasks" value={counts.runningTasks} detail={`${counts.pendingTasks} pending`} tone="success" /></Grid>
-          <Grid item xs={6} md={3}><CountCard label="Failed tasks" value={counts.failedTasks} detail={`${counts.finishedTasks} finished`} tone={counts.failedTasks ? "error" : "success"} /></Grid>
+          <Grid item xs={6} md={3}><CountCard label="Active agents" value={counts.agents} detail={`${counts.unreachableAgents} unreachable`} route="#/agents" /></Grid>
+          <Grid item xs={6} md={3}><CountCard label="Active frameworks" value={counts.frameworks} detail={`${counts.connectedFrameworks} connected`} route="#/frameworks" /></Grid>
+          <Grid item xs={6} md={3}><CountCard label="Running tasks" value={counts.runningTasks} detail={`${counts.pendingTasks} pending`} tone="success" route="#/tasks" /></Grid>
+          <Grid item xs={6} md={3}><CountCard label="Failed tasks" value={counts.failedTasks} detail={`${counts.finishedTasks} finished`} tone={counts.failedTasks ? "error" : "success"} route="#/tasks" /></Grid>
         </Grid>
       </Box>
 
@@ -187,7 +218,7 @@ function Dashboard() {
       </Box>
 
       <Box>
-        <Typography className="section-title" variant="h6">Control plane monitoring</Typography>
+        <Typography className="section-title" variant="h6">Leader monitoring</Typography>
         <Grid container spacing={2}>
           <Grid item xs={6} md={3}><CountCard label="Queued messages" value={monitoring.queuedMessages} detail={`${monitoring.queuedHttpRequests} HTTP requests queued`} /></Grid>
           <Grid item xs={6} md={3}><CountCard label="Outstanding offers" value={monitoring.outstandingOffers} detail={`${monitoring.dispatches.toLocaleString()} dispatches`} /></Grid>

@@ -1,3 +1,5 @@
+import { UTILIZATION_TYPES, utilizationSnapshot, utilizationValue } from "./utilization";
+
 function number(metrics, key, fallback = 0) {
   const value = Number(metrics?.[key]);
   return Number.isFinite(value) ? value : fallback;
@@ -44,7 +46,16 @@ export function formatUptime(seconds) {
   return `${minutes}m`;
 }
 
-export function deriveDashboard(summary = {}, state = {}, metrics = {}) {
+export function aggregateAgentUtilization(agentMetrics = []) {
+  return Object.fromEntries(UTILIZATION_TYPES.map(({ name }) => {
+    const values = agentMetrics
+      .map((metrics) => utilizationValue(metrics, "slave", name))
+      .filter((value) => value !== null);
+    return [name, values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null];
+  }));
+}
+
+export function deriveDashboard(summary = {}, state = {}, metrics = {}, agentUtilization = null) {
   const agentsFallback = activeCount(summary.slaves);
   const frameworksFallback = activeCount(summary.frameworks);
   const runningTasks = number(metrics, "master/tasks_running");
@@ -78,6 +89,7 @@ export function deriveDashboard(summary = {}, state = {}, metrics = {}) {
       disk: resource(metrics, "disk"),
       gpu: resource(metrics, "gpus"),
     },
+    utilization: agentUtilization || utilizationSnapshot(metrics, "slave"),
     monitoring: {
       queuedMessages: number(metrics, "master/event_queue_messages"),
       queuedHttpRequests: number(metrics, "master/event_queue_http_requests"),

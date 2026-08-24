@@ -3,7 +3,9 @@ import TerminalIcon from "@mui/icons-material/Terminal";
 import { Alert, Box, Button, CircularProgress, Grid, Paper, Stack, Typography } from "@mui/material";
 import { useAuth } from "./auth/AuthContext";
 import LogViewerDialog from "./logs/LogViewerDialog";
+import MasterDetailsDialog from "./dialogs/MasterDetailsDialog";
 import { formatClusterInfo } from "./masterUtils";
+import { UTILIZATION_TYPES, utilizationColor } from "./utilization";
 
 export default function ClusterInfo() {
   const [loading, setLoading] = useState(false);
@@ -11,13 +13,16 @@ export default function ClusterInfo() {
   const [error, setError] = useState("");
   const [logsOpen, setLogsOpen] = useState(false);
   const [clusterInfo, setClusterInfo] = useState(null);
+  const [metrics, setMetrics] = useState({});
+  const [selectedMaster, setSelectedMaster] = useState(null);
   const { request } = useAuth();
 
   const getMesosState = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await request("/state");
+      const [data, metricData] = await Promise.all([request("/state"), request("/metrics/snapshot")]);
       setStateData(data);
+      setMetrics(metricData || {});
       setError("");
 
       // Format the cluster information for better display
@@ -39,8 +44,8 @@ export default function ClusterInfo() {
       <Stack spacing={2}>
         <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ sm: "center" }} gap={2}>
           <Box>
-            <Typography variant="h5" fontWeight={700}>Master details</Typography>
-            <Typography color="text.secondary">ClusterD control-plane information and logs</Typography>
+            <Typography variant="h5" fontWeight={700}>Manager details</Typography>
+            <Typography color="text.secondary">ClusterD Manager information and logs</Typography>
           </Box>
           <Button startIcon={<TerminalIcon />} variant="contained" onClick={() => setLogsOpen(true)}>View master log</Button>
         </Stack>
@@ -50,6 +55,21 @@ export default function ClusterInfo() {
         ) : stateData && clusterInfo && (
           <Paper className="table-card" elevation={0} sx={{ p: 3 }}>
             <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Typography variant="h6" fontWeight={700} gutterBottom>Leader Live utilization</Typography>
+                <Grid container spacing={1.5}>
+                  {UTILIZATION_TYPES.map(({ name, label }) => {
+                    const value = Number(metrics[`master/${name}_utilization`]);
+                    const valid = Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : null;
+                    return <Grid item xs={6} sm={4} md={2.4} key={name}>
+                      <Paper variant="outlined" sx={{ p: 1.5, textAlign: "center", borderTop: 5, borderColor: utilizationColor(valid) }}>
+                        <Typography variant="caption" color="text.secondary">{label}</Typography>
+                        <Typography variant="h6" fontWeight={700}>{valid === null ? "—" : `${valid.toFixed(1)}%`}</Typography>
+                      </Paper>
+                    </Grid>;
+                  })}
+                </Grid>
+              </Grid>
               <Grid item xs={12} md={6}>
                 <Typography color="text.secondary" variant="caption">Server</Typography>
                 <Typography fontWeight={600}>{stateData.hostname || "—"}</Typography>
@@ -66,7 +86,7 @@ export default function ClusterInfo() {
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography color="text.secondary" variant="caption">Version</Typography>
-                <Typography fontWeight={600}>Apache Mesos {stateData.version || "—"}</Typography>
+                <Typography fontWeight={600}>ClusterD {stateData.version || "—"}</Typography>
               </Grid>
               <Grid item xs={12} md={6}>
                 <Typography color="text.secondary" variant="caption">Cluster</Typography>
@@ -74,10 +94,23 @@ export default function ClusterInfo() {
               </Grid>
               {clusterInfo.masterCount > 0 && (
                 <Grid item xs={12}>
-                  <Typography color="text.secondary" variant="caption">Master Servers ({clusterInfo.masterCount})</Typography>
+                  <Typography color="text.secondary" variant="caption">Manager Servers ({clusterInfo.masterCount})</Typography>
                   <Box sx={{ mt: 1 }}>
                     {clusterInfo.masters.map((master, index) => (
-                      <Paper key={index} elevation={0} sx={{ p: 2, mb: 1, backgroundColor: 'background.default' }}>
+                      <Paper
+                        key={index}
+                        elevation={0}
+                        onClick={() => setSelectedMaster({ ...master, isLeader: clusterInfo.currentLeaderId === master.id })}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            setSelectedMaster({ ...master, isLeader: clusterInfo.currentLeaderId === master.id });
+                          }
+                        }}
+                        sx={{ p: 2, mb: 1, backgroundColor: 'background.default', cursor: "pointer", "&:hover": { backgroundColor: "action.hover" } }}
+                      >
                         <Grid container spacing={2}>
                           <Grid item xs={12} sm={6} md={4}>
                             <Typography color="text.secondary" variant="caption">ID</Typography>
@@ -118,6 +151,7 @@ export default function ClusterInfo() {
         )}
       </Stack>
       <LogViewerDialog open={logsOpen} onClose={() => setLogsOpen(false)} kind="master" title="ClusterD master log" />
+      <MasterDetailsDialog open={Boolean(selectedMaster)} master={selectedMaster} onClose={() => setSelectedMaster(null)} />
     </>
   );
 }

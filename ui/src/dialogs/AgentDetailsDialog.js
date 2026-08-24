@@ -27,6 +27,7 @@ import {
   formatAgentTimestamp,
   visibleAgentTasks,
 } from "./agentDetails";
+import { UTILIZATION_TYPES, utilizationColor, utilizationValue } from "../utilization";
 
 const EMPTY = "—";
 
@@ -120,6 +121,23 @@ export default function AgentDetailsDialog({ open, agent, onClose }) {
               <Typography variant="h6" fontWeight={700} gutterBottom>Identifier</Typography>
               <DetailField label="Agent ID" mono>{agent.id || EMPTY}</DetailField>
               <Button startIcon={<TerminalIcon />} variant="outlined" sx={{ mt: 2 }} onClick={() => setLogsOpen(true)}>View agent log</Button>
+            </Box>
+
+            <Divider />
+
+            <Box>
+              <Typography variant="h6" fontWeight={700} gutterBottom>Live utilization</Typography>
+              <Grid container spacing={2}>
+                {UTILIZATION_TYPES.map(({ name, label }) => {
+                  const value = utilizationValue(agent._metrics, "slave", name);
+                  return <Grid item xs={6} sm={4} md={2.4} key={name}>
+                    <Paper variant="outlined" sx={{ p: 1.5, textAlign: "center", borderTop: 5, borderColor: utilizationColor(value) }}>
+                      <Typography variant="caption" color="text.secondary">{label}</Typography>
+                      <Typography variant="h6" fontWeight={700}>{value === null ? "—" : `${value.toFixed(1)}%`}</Typography>
+                    </Paper>
+                  </Grid>;
+                })}
+              </Grid>
             </Box>
 
             <Divider />

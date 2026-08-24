@@ -1,4 +1,4 @@
-const { getAgentProxyRoute, getProxyConfig } = require("./proxyConfig");
+const { getAgentProxyRoute, getMasterProxyRoute, getProxyConfig } = require("./proxyConfig");
 
 test("defaults the development proxy to devtest with self-signed TLS support", () => {
   expect(getProxyConfig({})).toMatchObject({
@@ -31,8 +31,18 @@ test("validates and rewrites a development agent API route", () => {
     target: "https://agent-1.example:5051",
     path: "/files/browse",
   });
+  expect(getAgentProxyRoute("/agent-api/agent-1.example/5051/metrics/snapshot")).toEqual({
+    target: "https://agent-1.example:5051",
+    path: "/metrics/snapshot",
+  });
 });
 
+test("rewrites a development master metrics route", () => {
+  expect(getMasterProxyRoute("/master-api/master-1.example/5050/metrics/snapshot")).toEqual({
+    target: "https://master-1.example:5050",
+    path: "/metrics/snapshot",
+  });
+});
 test("rejects unsafe or malformed agent proxy targets", () => {
   expect(getAgentProxyRoute("/agent-api/bad%2Fhost/5051/api/v1")).toBeNull();
   expect(getAgentProxyRoute("/agent-api/agent/99999/api/v1")).toBeNull();

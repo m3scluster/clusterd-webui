@@ -1,4 +1,4 @@
-import { deriveDashboard, formatDashboardResource } from "./dashboard";
+import { aggregateAgentUtilization, deriveDashboard, formatDashboardResource } from "./dashboard";
 
 test("formats GPU capacity as a count instead of memory", () => {
   expect(formatDashboardResource(2, "GPUs")).toBe("2");
@@ -29,6 +29,11 @@ test("derives cluster health, workload and resource monitoring from Mesos data",
       "master/outstanding_offers": 2,
       "allocator/mesos/allocation_run_ms/p95": 12.5,
       "system/load_1min": 0.75,
+      "slave/cpus_utilization": 43.5,
+      "slave/mem_utilization": 82,
+      "slave/disk_utilization": 12,
+      "slave/gpus_utilization": 0,
+      "slave/load_utilization": 55,
     },
   );
 
@@ -40,8 +45,15 @@ test("derives cluster health, workload and resource monitoring from Mesos data",
   expect(result.resources.memory.percent).toBe(25);
   expect(result.resources.gpu).toMatchObject({ total: 8, used: 2, percent: 25 });
   expect(result.monitoring).toMatchObject({ queuedMessages: 4, outstandingOffers: 2, allocatorP95: 12.5, load1m: 0.75 });
+  expect(result.utilization).toEqual({ cpus: 43.5, mem: 82, disk: 12, gpus: 0, load: 55 });
 });
 
+test("aggregates only agent utilization and ignores master metrics", () => {
+  expect(aggregateAgentUtilization([
+    { "master/cpus_utilization": 99, "slave/cpus_utilization": 20, "slave/mem_utilization": 40 },
+    { "slave/cpus_utilization": 60, "slave/mem_utilization": 80 },
+  ])).toEqual({ cpus: 40, mem: 60, disk: null, gpus: null, load: null });
+});
 test("uses state-summary collections and safe zeroes when optional metrics are absent", () => {
   const result = deriveDashboard(
     { cluster: "small", frameworks: [{ active: true }, { active: false }], slaves: [{ active: true }, { active: false }] },

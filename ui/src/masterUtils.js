@@ -99,3 +99,15 @@ export function formatClusterInfo(stateData) {
     isLeader: currentMaster && stateData.id === (stateData.leader_info?.id || null)
   };
 }
+
+export function masterHttpEndpoint(master, path = "/metrics/snapshot", environment = process.env.NODE_ENV) {
+  const hostname = master?.hostname;
+  const explicitPort = Number(master?.port);
+  const pidPort = String(master?.pid || "").match(/:(\d+)$/)?.[1];
+  const port = Number.isInteger(explicitPort) && explicitPort > 0 && explicitPort <= 65535
+    ? explicitPort
+    : Number(pidPort) || 5050;
+  if (!hostname || !/^[A-Za-z0-9.-]+$/.test(hostname) || !Number.isInteger(port) || port < 1 || port > 65535) return null;
+  if (environment === "development") return `/master-api/${encodeURIComponent(hostname)}/${port}${path}`;
+  return `//${hostname}:${port}${path}`;
+}

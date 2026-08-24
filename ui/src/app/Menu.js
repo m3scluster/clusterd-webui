@@ -68,7 +68,7 @@ export default function MainMenu() {
           <Tab label="Frameworks" value={2} href={hashFromTabValue(2)} />
           <Tab label="Offers" value={5} href={hashFromTabValue(5)} />          
           <Tab label="Agents" value={3} href={hashFromTabValue(3)} />
-          <Tab label="Master details" value={4} href={hashFromTabValue(4)} />        
+          <Tab label="Manager details" value={4} href={hashFromTabValue(4)} />        
         </Tabs>
       </AppBar>
       <Container maxWidth="xl" sx={{ py: 3, flex: 1 }}>

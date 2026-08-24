@@ -5,7 +5,8 @@ import {
   isLeader, 
   getMasterStatus, 
   extractMasters,
-  formatClusterInfo
+  formatClusterInfo,
+  masterHttpEndpoint
 } from './masterUtils';
 
 // Mock data to work with
@@ -66,5 +67,11 @@ describe('Master Utility Functions', () => {
     expect(clusterInfo.version).toBe('1.8.0');
     expect(clusterInfo.masterCount).toBe(1);
     expect(clusterInfo.isLeader).toBe(true);
+  });
+
+  test('builds a safe master metrics endpoint from hostname and pid port', () => {
+    expect(masterHttpEndpoint({ hostname: 'master-a.example.com', pid: 'master@master-a.example.com:5050' }, '/metrics/snapshot', 'development'))
+      .toBe('/master-api/master-a.example.com/5050/metrics/snapshot');
+    expect(masterHttpEndpoint({ hostname: 'bad/host', pid: 'master@bad/host:5050' }, '/metrics/snapshot', 'development')).toBeNull();
   });
 });

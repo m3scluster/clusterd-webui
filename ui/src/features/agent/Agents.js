@@ -3,6 +3,8 @@ import { useCallback, useState, useEffect } from 'react';
 import AgentsTable from './AgentsTable.js';
 import { useAuth } from "../../auth/AuthContext";
 import { attachTasksToAgents } from "../../dialogs/agentDetails";
+import { agentHttpEndpoint } from "../../logs/logApi";
+import { normalizeMetricsResponse } from "../../utilization";
 
 export default function Data() {
   const [loading, setLoading] = useState(false);  
@@ -17,7 +19,12 @@ export default function Data() {
       request("/slaves"),
       request("/frameworks?order=dsc&limit=-1"),
     ]);
-    setAgents(attachTasksToAgents(agentData.slaves, frameworkData.frameworks));
+    const enriched = await Promise.all((agentData.slaves || []).map(async (agent) => {
+      const endpoint = agentHttpEndpoint(agent, "/metrics/snapshot");
+      if (!endpoint) return agent;
+      try { return { ...agent, _metrics: normalizeMetricsResponse(await request(endpoint)) }; } catch (_) { return agent; }
+    }));
+    setAgents(attachTasksToAgents(enriched, frameworkData.frameworks));
     setLoading(false);
   }, [request]);
 
