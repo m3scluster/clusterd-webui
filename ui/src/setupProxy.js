@@ -1,6 +1,13 @@
 const { createProxyMiddleware } = require("http-proxy-middleware");
 const { getAgentProxyRoute, getMasterProxyRoute, getProxyConfig } = require("./proxyConfig");
 
+function rewriteWithQuery(path, request, routeGetter) {
+  const route = routeGetter(request.originalUrl);
+  if (!route) return path;
+  const query = String(request.originalUrl || "").split("?", 2)[1];
+  return `${route.path}${query ? `?${query}` : ""}`;
+}
+
 module.exports = function setupProxy(app) {
   const proxy = createProxyMiddleware(getProxyConfig());
   app.use(["/api", "/master", "/metrics", "/frameworks", "/slaves", "/state"], proxy);
@@ -11,7 +18,7 @@ module.exports = function setupProxy(app) {
     secure: false,
     logLevel: process.env.CLUSTERD_PROXY_LOG_LEVEL || "warn",
     router: (request) => getAgentProxyRoute(request.originalUrl)?.target,
-    pathRewrite: (path) => getAgentProxyRoute(path)?.path || path,
+    pathRewrite: (path, request) => rewriteWithQuery(path, request, getAgentProxyRoute),
   });
   app.use("/agent-api", (request, response, next) => {
     if (!getAgentProxyRoute(request.originalUrl)) {
@@ -27,7 +34,7 @@ module.exports = function setupProxy(app) {
     secure: false,
     logLevel: process.env.CLUSTERD_PROXY_LOG_LEVEL || "warn",
     router: (request) => getMasterProxyRoute(request.originalUrl)?.target,
-    pathRewrite: (path) => getMasterProxyRoute(path)?.path || path,
+    pathRewrite: (path, request) => rewriteWithQuery(path, request, getMasterProxyRoute),
   });
   app.use("/master-api", (request, response, next) => {
     if (!getMasterProxyRoute(request.originalUrl)) {
