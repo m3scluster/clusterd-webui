@@ -35,6 +35,7 @@ test("builds development and production agent API endpoints", () => {
   expect(agentApiEndpoint({ hostname: "bad/host", port: 5051 }, "development")).toBeNull();
   expect(agentApiEndpoint({ hostname: "agent-1", port: 5051 }, "production")).toBe("//agent-1:5051/api/v1");
   expect(agentHttpEndpoint(agent, "/state", "development")).toBe("/agent-api/agent-1.example/5051/state");
+  expect(agentHttpEndpoint(agent, "/version", "development")).toBe("/agent-api/agent-1.example/5051/version");
   expect(agentHttpEndpoint(agent, "/files/browse", "production")).toBe("//agent-1.example:5051/files/browse");
   expect(agentHttpEndpoint(agent, "/not-allowed", "production")).toBeNull();
 });

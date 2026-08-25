@@ -13,6 +13,9 @@ jest.mock("@mui/material", () => {
 });
 
 jest.mock("../logs/LogViewerDialog", () => () => null);
+jest.mock("../auth/AuthContext", () => ({
+  useAuth: () => ({ request: jest.fn().mockResolvedValue({ Version: "1.11.0" }) }),
+}));
 jest.mock("../features/tasks/TasksTable", () => ({ tasks, title, showFrameworkId }) => (
   <div data-testid="agent-tasks" data-framework-id={String(showFrameworkId)}>
     {title}: {tasks.map((task) => task.id).join(", ")}
@@ -34,8 +37,8 @@ afterEach(() => {
   container.remove();
 });
 
-test("shows the tasks currently running on the agent", () => {
-  act(() => {
+test("shows the tasks currently running on the agent", async () => {
+  await act(async () => {
     root.render(
       <AgentDetailsDialog
         open
@@ -43,6 +46,7 @@ test("shows the tasks currently running on the agent", () => {
         agent={{
           id: "agent-1",
           hostname: "agent-1.example",
+          pid: "slave@agent-1.example:5051",
           _tasks: [
             { id: "active-task-1", state: "TASK_RUNNING" },
             { id: "failed-task", state: "TASK_FAILED" },
@@ -52,6 +56,7 @@ test("shows the tasks currently running on the agent", () => {
         }}
       />
     );
+    await Promise.resolve();
   });
 
   const tasks = container.querySelector('[data-testid="agent-tasks"]');
@@ -61,5 +66,7 @@ test("shows the tasks currently running on the agent", () => {
   expect(tasks?.textContent).not.toContain("failed-task");
   expect(tasks?.textContent).not.toContain("finished-task");
   expect(tasks?.dataset.frameworkId).toBe("false");
+  expect(container.textContent).toContain("Product");
+  expect(container.textContent).toContain("Mesos");
   expect(container.textContent.indexOf("Live utilization")).toBeLessThan(container.textContent.indexOf("Tasks on this agent"));
 });

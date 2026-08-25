@@ -83,7 +83,7 @@ export default function AgentsTable({ agents = [] }) {
                 <TableCell width={52} aria-label="Actions" />
                 <TableCell>Agent ID</TableCell>
                 <TableCell>Hostname</TableCell>
-                <TableCell sx={{ width: 110, whiteSpace: "nowrap" }}>Mesos version</TableCell>
+                <TableCell sx={{ width: 110, whiteSpace: "nowrap" }}>Version</TableCell>
                 <TableCell sx={{ width: 110, whiteSpace: "nowrap" }}>Status</TableCell>
                 <TableCell sx={{ width: 400, whiteSpace: "nowrap" }}>Utilization</TableCell>
               </TableRow>

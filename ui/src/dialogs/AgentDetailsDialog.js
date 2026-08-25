@@ -17,8 +17,10 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import TerminalIcon from "@mui/icons-material/Terminal";
+import { useAuth } from "../auth/AuthContext";
 import LogViewerDialog from "../logs/LogViewerDialog";
 import TasksTable from "../features/tasks/TasksTable";
+import { agentHttpEndpoint } from "../logs/logApi";
 import {
   AGENT_RESOURCE_TYPES,
   agentAdvancedDetails,
@@ -76,11 +78,41 @@ function agentStatus(agent) {
 
 export default function AgentDetailsDialog({ open, agent, onClose }) {
   const [logsOpen, setLogsOpen] = React.useState(false);
+  const [product, setProduct] = React.useState("Mesos");
+  const [agentVersion, setAgentVersion] = React.useState(agent?.version || EMPTY);
+  const { request } = useAuth();
   const status = agentStatus(agent);
   const advanced = agentAdvancedDetails(agent);
   const tasks = visibleAgentTasks(agent?._tasks);
   const attributes = Object.entries(agent?.attributes || {});
   const capabilities = Array.isArray(agent?.capabilities) ? agent.capabilities : [];
+
+  React.useEffect(() => {
+    if (!open) return undefined;
+    let active = true;
+    const endpoint = agentHttpEndpoint(agent, "/version");
+    if (!endpoint) {
+      setProduct("Mesos");
+      setAgentVersion(agent?.version || EMPTY);
+      return undefined;
+    }
+    request(endpoint)
+      .then((version) => {
+        if (active) {
+          setProduct(version?.Name || version?.name || "Mesos");
+          setAgentVersion(version?.Version || version?.version || agent?.version || EMPTY);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setProduct("Mesos");
+          setAgentVersion(agent?.version || EMPTY);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [agent, open, request]);
 
   return (
     <>
@@ -107,7 +139,8 @@ export default function AgentDetailsDialog({ open, agent, onClose }) {
               <Typography variant="h6" fontWeight={700} gutterBottom>Overview</Typography>
               <Grid container spacing={2.5}>
                 <Grid item xs={12} sm={6} md={3}><DetailField label="Status"><Chip label={status.label} color={status.color} size="small" /></DetailField></Grid>
-                <Grid item xs={12} sm={6} md={3}><DetailField label="Mesos version">{agent.version || EMPTY}</DetailField></Grid>
+                <Grid item xs={12} sm={6} md={3}><DetailField label="Version">{agentVersion}</DetailField></Grid>
+                <Grid item xs={12} sm={6} md={3}><DetailField label="Product">{product}</DetailField></Grid>
                 <Grid item xs={12} sm={6} md={3}><DetailField label="Host and port">{agent.hostname ? `${agent.hostname}:${agent.port || EMPTY}` : EMPTY}</DetailField></Grid>
                 <Grid item xs={12} sm={6} md={3}><DetailField label="PID" mono>{agent.pid || EMPTY}</DetailField></Grid>
                 <Grid item xs={12} sm={6}><DetailField label="Registered">{formatAgentTimestamp(agent.registered_time)}</DetailField></Grid>

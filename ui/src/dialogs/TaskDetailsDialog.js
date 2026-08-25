@@ -1,4 +1,6 @@
 import React from "react";
+import ArticleIcon from "@mui/icons-material/Article";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import {
   Box,
   Button,
@@ -148,13 +150,23 @@ export default function TaskDetailsDialog({ open, task, onClose }) {
                 <Grid item xs={12} md={3}><DetailField label="Agent ID" mono>{agentHref(task.slave_id) ? <Link href={agentHref(task.slave_id)} onClick={openAgent}>{task.slave_id}</Link> : EMPTY}</DetailField></Grid>
                 <Grid item xs={12} md={3}><DetailField label="Host">{taskHost(task)}</DetailField></Grid>
                 <Grid item xs={12} md={3}><DetailField label="Executor ID" mono>{task.executor_id}</DetailField></Grid>
-                <Grid item xs={12}><DetailField label="Sandbox">{sandboxHref ? <Link href={sandboxHref}>Open sandbox</Link> : EMPTY}</DetailField></Grid>
                 <Grid item xs={12}>
-                  <Button startIcon={<TerminalIcon />} variant="outlined" disabled={!canReadLogs} onClick={() => setLogsOpen(true)}>
+                  <Button startIcon={<ArticleIcon />} variant="outlined" disabled={!canReadLogs} onClick={() => setLogsOpen(true)}>
                     View task logs
                   </Button>
-                  <Button variant="outlined" disabled={!canOpenShell} onClick={() => setShellOpen(true)}>
+                  <Button startIcon={<TerminalIcon />} variant="outlined" disabled={!canOpenShell} onClick={() => setShellOpen(true)}>
                     Open task shell
+                  </Button>
+                  <Button
+                    component="a"
+                    href={sandboxHref || undefined}
+                    target="_blank"
+                    rel="noreferrer"
+                    startIcon={<OpenInNewIcon />}
+                    variant="outlined"
+                    disabled={!sandboxHref}
+                  >
+                    Open sandbox
                   </Button>
                   {!canReadLogs && <Typography color="text.secondary" variant="caption" sx={{ ml: 1 }}>No active container log is available.</Typography>}
                 </Grid>

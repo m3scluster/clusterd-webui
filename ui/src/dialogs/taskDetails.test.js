@@ -14,7 +14,8 @@ import {
 } from "./taskDetails";
 
 test("formats Mesos resources without treating MiB values as bytes", () => {
-  expect(formatTaskResource("mem", 2000)).toBe("2,000 MiB");
+  expect(formatTaskResource("mem", 2000)).toBe("2.0 GiB");
+  expect(formatTaskResource("mem", 1024001)).toBe("1.0 TiB");
   expect(formatTaskResource("disk", 1000)).toBe("1,000 MiB");
   expect(formatTaskResource("ports", "[31002-31003]")).toBe("[31002-31003]");
 });
@@ -75,7 +76,9 @@ test("builds the sandbox link with an explicit executor id", () => {
     framework_id: "framework-1",
     executor_id: "executor-1",
     id: "task-1",
-  })).toBe("#/agents/agent-1/frameworks/framework-1/executors/executor-1/tasks/task-1/browse");
+    _agent: { hostname: "agent-1.example", pid: "slave@agent-1.example:5051" },
+    statuses: [{ container_status: { container_id: { value: "container-1" } } }],
+  })).toBe("//agent-1.example:5051/slave/agent-1/frameworks/framework-1/executors/executor-1/runs/container-1/browse");
 });
 
 test("uses the task id for a default executor when executor_id is empty", () => {
@@ -84,7 +87,9 @@ test("uses the task id for a default executor when executor_id is empty", () => 
     framework_id: "framework 1",
     executor_id: "",
     id: "task#1",
-  })).toBe("#/agents/agent%2F1/frameworks/framework%201/executors/task%231/tasks/task%231/browse");
+    _agent: { hostname: "agent-1.example", pid: "slave@agent-1.example:5051" },
+    statuses: [{ container_status: { container_id: { value: "container 1" } } }],
+  })).toBe("//agent-1.example:5051/slave/agent%2F1/frameworks/framework%201/executors/task%231/runs/container%201/browse");
 });
 
 test("builds encoded framework and agent detail links", () => {

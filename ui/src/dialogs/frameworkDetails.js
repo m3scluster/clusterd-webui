@@ -26,9 +26,17 @@ export function formatFrameworkResource(name, value) {
   if (name === "ports") return String(value);
   const number = Number(value);
   if (!Number.isFinite(number)) return EMPTY;
-  const formatted = number.toLocaleString(undefined, { maximumFractionDigits: 2 });
-  if (name === "mem" || name === "disk") return `${formatted} MiB`;
-  return formatted;
+  if (name === "mem" || name === "disk") {
+    // Umrechnung auf GiB bei Werten >1000 MiB
+    if (number > 1000) {
+      const gib = number / 1024;
+      if (gib > 1000) return `${(gib / 1024).toFixed(1)} TiB`;
+      return `${gib.toFixed(1)} GiB`;
+    }
+    const formatted = number.toLocaleString(undefined, { maximumFractionDigits: 2 });
+    return `${formatted} MiB`;
+  }
+  return number.toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
 export function frameworkStatus(framework = {}) {

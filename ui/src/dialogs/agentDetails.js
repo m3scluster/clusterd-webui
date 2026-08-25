@@ -20,7 +20,20 @@ export function formatAgentTimestamp(timestamp) {
 
 export function formatAgentResource(name, value) {
   if (value === null || value === undefined || value === "") return EMPTY;
-  if (name === "mem" || name === "disk") return `${finiteNumber(value).toLocaleString()} MiB`;
+  if (name === "mem" || name === "disk") {
+    const number = finiteNumber(value);
+    // Umrechnung auf GiB bei Werten >1000 MiB
+    if (number > 1000) {
+      // Umrechnung auf TiB wenn über 1000 GiB
+      if (number > 1000 * 1024) {
+        const tib = (number / (1024 * 1024)).toFixed(1);
+        return `${tib} TiB`;
+      }
+      const gib = (number / 1024).toFixed(1);
+      return `${gib} GiB`;
+    }
+    return `${number.toLocaleString()} MiB`;
+  }
   return String(value);
 }
 

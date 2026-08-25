@@ -8,9 +8,11 @@ import {
   visibleAgentTasks,
 } from "./agentDetails";
 
-test("keeps Mesos memory and disk values in MiB", () => {
-  expect(formatAgentResource("mem", 14849)).toBe("14,849 MiB");
-  expect(formatAgentResource("disk", 232652)).toBe("232,652 MiB");
+test("formats Mesos memory and disk values above 1000 MiB as GiB", () => {
+  expect(formatAgentResource("mem", 1000)).toBe("1,000 MiB");
+  expect(formatAgentResource("mem", 14849)).toBe("14.5 GiB");
+  expect(formatAgentResource("disk", 232652)).toBe("227.2 GiB");
+  expect(formatAgentResource("mem", 1024001)).toBe("1.0 TiB");
   expect(formatAgentResource("ports", "[31000-32000]")).toBe("[31000-32000]");
   expect(formatAgentResource("cpus", null)).toBe("—");
 });

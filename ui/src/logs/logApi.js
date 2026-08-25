@@ -33,10 +33,19 @@ export function agentApiEndpoint(agent, environment = process.env.NODE_ENV) {
   return `/agent-api/${encodeURIComponent(hostname)}/${port}/api/v1`;
 }
 
-const AGENT_HTTP_PATHS = new Set(["/state", "/files/browse", "/metrics/snapshot"]);
+const AGENT_HTTP_PATHS = new Set(["/state", "/version", "/files/browse", "/metrics/snapshot"]);
 
 export function agentHttpEndpoint(agent, path, environment = process.env.NODE_ENV) {
   if (!AGENT_HTTP_PATHS.has(path)) return null;
+  const hostname = agent?.hostname;
+  const port = agentPort(agent);
+  if (!hostname || !/^[A-Za-z0-9.-]+$/.test(hostname) || !port) return null;
+  if (environment !== "development") return `//${hostname}:${port}${path}`;
+  return `/agent-api/${encodeURIComponent(hostname)}/${port}${path}`;
+}
+
+export function agentSandboxEndpoint(agent, path, environment = process.env.NODE_ENV) {
+  if (!/^\/slave\/[^/]+\/frameworks\/[^/]+\/executors\/[^/]+\/runs\/[^/]+\/browse$/.test(path)) return null;
   const hostname = agent?.hostname;
   const port = agentPort(agent);
   if (!hostname || !/^[A-Za-z0-9.-]+$/.test(hostname) || !port) return null;

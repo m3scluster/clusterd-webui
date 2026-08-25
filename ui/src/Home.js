@@ -116,7 +116,7 @@ function ResourceCard({ label, resource }) {
 function UtilizationHeatmap({ values }) {
   return (
     <Box>
-      <Typography className="section-title" variant="h6">Live utilization heatmap</Typography>
+      <Typography className="section-title" variant="h6">Live agent utilization heatmap</Typography>
       <Grid container spacing={1.5}>
         {UTILIZATION_TYPES.map(({ name, label }) => {
           const value = values[name];
@@ -188,7 +188,7 @@ function Dashboard() {
           </Box>
           <Box textAlign={{ md: "right" }}>
             <Typography variant="h5" fontWeight={700}>{cluster.uptime}</Typography>
-            <Typography color="text.secondary" variant="body2">Master uptime</Typography>
+            <Typography color="text.secondary" variant="body2">Manager uptime</Typography>
             <Typography color="text.secondary" variant="caption">
               {refreshing ? "Refreshing…" : `Updated ${updatedAt?.toLocaleTimeString()}`}
             </Typography>

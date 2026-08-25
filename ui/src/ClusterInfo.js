@@ -29,7 +29,7 @@ export default function ClusterInfo() {
       const formattedInfo = formatClusterInfo(data);
       setClusterInfo(formattedInfo);
     } catch (stateError) {
-      setError(stateError.message || "Master details could not be loaded.");
+      setError(stateError.message || "Manager details could not be loaded.");
     } finally {
       setLoading(false);
     }
@@ -47,7 +47,7 @@ export default function ClusterInfo() {
             <Typography variant="h5" fontWeight={700}>Manager details</Typography>
             <Typography color="text.secondary">ClusterD Manager information and logs</Typography>
           </Box>
-          <Button startIcon={<TerminalIcon />} variant="contained" onClick={() => setLogsOpen(true)}>View master log</Button>
+          <Button startIcon={<TerminalIcon />} variant="contained" onClick={() => setLogsOpen(true)}>View Manager log</Button>
         </Stack>
         {error && <Alert severity="error">{error}</Alert>}
         {loading && !stateData ? (
@@ -95,6 +95,7 @@ export default function ClusterInfo() {
               {clusterInfo.masterCount > 0 && (
                 <Grid item xs={12}>
                   <Typography color="text.secondary" variant="caption">Manager Servers ({clusterInfo.masterCount})</Typography>
+                  <Typography color="text.secondary" variant="body2" sx={{ mt: 0.5 }}>Click a manager to view its details.</Typography>
                   <Box sx={{ mt: 1 }}>
                     {clusterInfo.masters.map((master, index) => (
                       <Paper
@@ -109,7 +110,17 @@ export default function ClusterInfo() {
                             setSelectedMaster({ ...master, isLeader: clusterInfo.currentLeaderId === master.id });
                           }
                         }}
-                        sx={{ p: 2, mb: 1, backgroundColor: 'background.default', cursor: "pointer", "&:hover": { backgroundColor: "action.hover" } }}
+                        sx={{
+                          p: 2,
+                          mb: 1,
+                          backgroundColor: "background.default",
+                          border: 1,
+                          borderColor: "divider",
+                          cursor: "pointer",
+                          transition: "background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease",
+                          "&:hover": { backgroundColor: "action.hover", borderColor: "primary.main", boxShadow: 2 },
+                          "&:focus-visible": { outline: "2px solid", outlineColor: "primary.main", outlineOffset: 2 },
+                        }}
                       >
                         <Grid container spacing={2}>
                           <Grid item xs={12} sm={6} md={4}>
@@ -150,7 +161,7 @@ export default function ClusterInfo() {
           </Paper>
         )}
       </Stack>
-      <LogViewerDialog open={logsOpen} onClose={() => setLogsOpen(false)} kind="master" title="ClusterD master log" />
+      <LogViewerDialog open={logsOpen} onClose={() => setLogsOpen(false)} kind="master" title="ClusterD Manager log" />
       <MasterDetailsDialog open={Boolean(selectedMaster)} master={selectedMaster} onClose={() => setSelectedMaster(null)} />
     </>
   );

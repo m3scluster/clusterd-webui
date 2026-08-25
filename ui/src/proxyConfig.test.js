@@ -31,6 +31,14 @@ test("validates and rewrites a development agent API route", () => {
     target: "https://agent-1.example:5051",
     path: "/files/browse",
   });
+  expect(getAgentProxyRoute("/agent-api/agent-1.example/5051/version")).toEqual({
+    target: "https://agent-1.example:5051",
+    path: "/version",
+  });
+  expect(getAgentProxyRoute("/agent-api/agent-1.example/5051/slave/agent-1/frameworks/framework-1/executors/executor-1/runs/container-1/browse")).toEqual({
+    target: "https://agent-1.example:5051",
+    path: "/slave/agent-1/frameworks/framework-1/executors/executor-1/runs/container-1/browse",
+  });
   expect(getAgentProxyRoute("/agent-api/agent-1.example/5051/metrics/snapshot")).toEqual({
     target: "https://agent-1.example:5051",
     path: "/metrics/snapshot",

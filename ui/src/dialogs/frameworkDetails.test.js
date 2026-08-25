@@ -25,7 +25,9 @@ test("formats timestamps and resources without leaking invalid numbers", () => {
   expect(formatFrameworkTimestamp(0)).toBe("—");
   expect(formatFrameworkTimestamp(1704067200)).toContain("2024");
   expect(formatFrameworkResource("cpus", 1.25)).toBe("1.25");
-  expect(formatFrameworkResource("mem", 1024)).toContain("MiB");
+  expect(formatFrameworkResource("mem", 1000)).toContain("MiB");
+  expect(formatFrameworkResource("mem", 2048)).toBe("2.0 GiB");
+  expect(formatFrameworkResource("mem", 1024001)).toBe("1.0 TiB");
   expect(formatFrameworkResource("ports", "[31000-32000]")).toBe("[31000-32000]");
   expect(formatFrameworkResource("disk", "invalid")).toBe("—");
 });

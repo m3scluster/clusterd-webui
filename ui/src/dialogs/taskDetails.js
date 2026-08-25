@@ -1,3 +1,5 @@
+import { agentSandboxEndpoint, latestTaskContainerId } from "../logs/logApi";
+
 export function formatTaskTimestamp(timestamp) {
   const value = Number(timestamp);
   if (!Number.isFinite(value) || value <= 0) return "—";
@@ -11,7 +13,15 @@ export function normalizeTaskRoles(role) {
 
 export function formatTaskResource(name, value) {
   if (value === null || value === undefined || value === "") return "—";
-  if (name === "mem" || name === "disk") return `${Number(value).toLocaleString()} MiB`;
+  if (name === "mem" || name === "disk") {
+    const amount = Number(value);
+    if (amount > 1000) {
+      const gib = amount / 1024;
+      if (gib > 1000) return `${(gib / 1024).toFixed(1)} TiB`;
+      return `${gib.toFixed(1)} GiB`;
+    }
+    return `${amount.toLocaleString()} MiB`;
+  }
   return String(value);
 }
 
@@ -64,9 +74,11 @@ export function taskSandboxHref(task) {
   const taskId = task?.id;
   if (!agentId || !frameworkId || !taskId) return null;
 
+  const containerId = latestTaskContainerId(task);
+  if (!task._agent || !containerId) return null;
   const executorId = task.executor_id || taskId;
   const encode = (value) => encodeURIComponent(String(value));
-  return `#/agents/${encode(agentId)}/frameworks/${encode(frameworkId)}/executors/${encode(executorId)}/tasks/${encode(taskId)}/browse`;
+  return agentSandboxEndpoint(task._agent, `/slave/${encode(agentId)}/frameworks/${encode(frameworkId)}/executors/${encode(executorId)}/runs/${encode(containerId)}/browse`);
 }
 
 export function frameworkHref(frameworkId) {
