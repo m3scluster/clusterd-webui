@@ -14,7 +14,7 @@ jest.mock("@mui/material", () => {
 
 jest.mock("../logs/LogViewerDialog", () => () => null);
 jest.mock("../auth/AuthContext", () => ({
-  useAuth: () => ({ request: jest.fn().mockResolvedValue({ Version: "1.11.0" }) }),
+  useAuth: () => ({ request: jest.fn().mockResolvedValue({ name: "ClusterD", version: "1.11.0" }) }),
 }));
 jest.mock("../features/tasks/TasksTable", () => ({ tasks, title, showFrameworkId }) => (
   <div data-testid="agent-tasks" data-framework-id={String(showFrameworkId)}>
@@ -67,6 +67,6 @@ test("shows the tasks currently running on the agent", async () => {
   expect(tasks?.textContent).not.toContain("finished-task");
   expect(tasks?.dataset.frameworkId).toBe("false");
   expect(container.textContent).toContain("Product");
-  expect(container.textContent).toContain("Mesos");
+  expect(container.textContent).toContain("ClusterD");
   expect(container.textContent.indexOf("Live utilization")).toBeLessThan(container.textContent.indexOf("Tasks on this agent"));
 });

@@ -1,6 +1,5 @@
 import React from "react";
 import ArticleIcon from "@mui/icons-material/Article";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import {
   Box,
   Button,
@@ -22,11 +21,12 @@ import {
   Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import TerminalIcon from "@mui/icons-material/Terminal";
+
 import LogViewerDialog from "../logs/LogViewerDialog";
 import TaskShellDialog from "../shell/TaskShellDialog";
 import FrameworkDetailsDialog from "./FrameworkDetailsDialog";
 import AgentDetailsDialog from "./AgentDetailsDialog";
+import SandboxDialog from "./SandboxDialog";
 import { latestTaskContainerId } from "../logs/logApi";
 import { StateBadge } from "../libs/functions";
 import { useAuth } from "../auth/AuthContext";
@@ -40,7 +40,6 @@ import {
   frameworkHref,
   taskHealth,
   taskHost,
-  taskSandboxHref,
 } from "./taskDetails";
 
 const EMPTY = "—";
@@ -77,11 +76,12 @@ export default function TaskDetailsDialog({ open, task, onClose }) {
   const [shellOpen, setShellOpen] = React.useState(false);
   const [relatedFramework, setRelatedFramework] = React.useState(null);
   const [relatedAgent, setRelatedAgent] = React.useState(null);
+  const [sandboxOpen, setSandboxOpen] = React.useState(false);
 
   const statuses = sortTaskStatuses(task?.statuses);
   const advanced = taskAdvancedDetails(task);
   const latestState = task?.state || statuses.at(-1)?.state || EMPTY;
-  const sandboxHref = taskSandboxHref(task);
+
   const canReadLogs = Boolean(task?._agent && latestTaskContainerId(task));
   const canOpenShell = canReadLogs && Boolean(task?._agent?.hostname && task?._agent?.port);
 
@@ -154,18 +154,10 @@ export default function TaskDetailsDialog({ open, task, onClose }) {
                   <Button startIcon={<ArticleIcon />} variant="outlined" disabled={!canReadLogs} onClick={() => setLogsOpen(true)}>
                     View task logs
                   </Button>
-                  <Button startIcon={<TerminalIcon />} variant="outlined" disabled={!canOpenShell} onClick={() => setShellOpen(true)}>
+                  <Button startIcon={<ArticleIcon />} variant="outlined" disabled={!canOpenShell} onClick={() => setShellOpen(true)}>
                     Open task shell
                   </Button>
-                  <Button
-                    component="a"
-                    href={sandboxHref || undefined}
-                    target="_blank"
-                    rel="noreferrer"
-                    startIcon={<OpenInNewIcon />}
-                    variant="outlined"
-                    disabled={!sandboxHref}
-                  >
+                  <Button startIcon={<ArticleIcon />} variant="outlined" disabled={!task?._agent} onClick={() => setSandboxOpen(true)}>
                     Open sandbox
                   </Button>
                   {!canReadLogs && <Typography color="text.secondary" variant="caption" sx={{ ml: 1 }}>No active container log is available.</Typography>}
@@ -229,6 +221,7 @@ export default function TaskDetailsDialog({ open, task, onClose }) {
     <TaskShellDialog open={shellOpen} task={task} onClose={() => setShellOpen(false)} />
     <FrameworkDetailsDialog open={Boolean(relatedFramework)} framework={relatedFramework} onClose={() => setRelatedFramework(null)} />
     <AgentDetailsDialog open={Boolean(relatedAgent)} agent={relatedAgent} onClose={() => setRelatedAgent(null)} />
+    <SandboxDialog open={sandboxOpen} task={task} agent={task?._agent} onClose={() => setSandboxOpen(false)} />
 
     </>
   );

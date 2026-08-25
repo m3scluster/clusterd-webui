@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import TerminalIcon from "@mui/icons-material/Terminal";
+import ArticleIcon from "@mui/icons-material/Article";
 import { Alert, Box, Button, CircularProgress, Grid, Paper, Stack, Typography } from "@mui/material";
 import { useAuth } from "./auth/AuthContext";
 import LogViewerDialog from "./logs/LogViewerDialog";
@@ -47,7 +47,7 @@ export default function ClusterInfo() {
             <Typography variant="h5" fontWeight={700}>Manager details</Typography>
             <Typography color="text.secondary">ClusterD Manager information and logs</Typography>
           </Box>
-          <Button startIcon={<TerminalIcon />} variant="contained" onClick={() => setLogsOpen(true)}>View Manager log</Button>
+          <Button startIcon={<ArticleIcon />} variant="contained" onClick={() => setLogsOpen(true)}>View Manager log</Button>
         </Stack>
         {error && <Alert severity="error">{error}</Alert>}
         {loading && !stateData ? (

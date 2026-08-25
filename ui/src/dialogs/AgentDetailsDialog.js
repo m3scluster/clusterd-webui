@@ -1,4 +1,5 @@
 import React from "react";
+import ArticleIcon from "@mui/icons-material/Article";
 import {
   Box,
   Button,
@@ -16,7 +17,7 @@ import {
   Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import TerminalIcon from "@mui/icons-material/Terminal";
+
 import { useAuth } from "../auth/AuthContext";
 import LogViewerDialog from "../logs/LogViewerDialog";
 import TasksTable from "../features/tasks/TasksTable";
@@ -78,7 +79,7 @@ function agentStatus(agent) {
 
 export default function AgentDetailsDialog({ open, agent, onClose }) {
   const [logsOpen, setLogsOpen] = React.useState(false);
-  const [product, setProduct] = React.useState("Mesos");
+  const [product, setProduct] = React.useState(agent?.name || EMPTY);
   const [agentVersion, setAgentVersion] = React.useState(agent?.version || EMPTY);
   const { request } = useAuth();
   const status = agentStatus(agent);
@@ -99,7 +100,7 @@ export default function AgentDetailsDialog({ open, agent, onClose }) {
     request(endpoint)
       .then((version) => {
         if (active) {
-          setProduct(version?.Name || version?.name || "Mesos");
+          setProduct(version?.name ?? "Mesos");
           setAgentVersion(version?.Version || version?.version || agent?.version || EMPTY);
         }
       })
@@ -153,7 +154,7 @@ export default function AgentDetailsDialog({ open, agent, onClose }) {
             <Box>
               <Typography variant="h6" fontWeight={700} gutterBottom>Identifier</Typography>
               <DetailField label="Agent ID" mono>{agent.id || EMPTY}</DetailField>
-              <Button startIcon={<TerminalIcon />} variant="outlined" sx={{ mt: 2 }} onClick={() => setLogsOpen(true)}>View agent log</Button>
+              <Button startIcon={<ArticleIcon />} variant="outlined" sx={{ mt: 2 }} onClick={() => setLogsOpen(true)}>View agent log</Button>
             </Box>
 
             <Divider />

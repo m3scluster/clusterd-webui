@@ -45,12 +45,11 @@ export function agentHttpEndpoint(agent, path, environment = process.env.NODE_EN
 }
 
 export function agentSandboxEndpoint(agent, path, environment = process.env.NODE_ENV) {
-  if (!/^\/slave\/[^/]+\/frameworks\/[^/]+\/executors\/[^/]+\/runs\/[^/]+\/browse$/.test(path)) return null;
+  if (!/^#\/agents\/[^/]+\/frameworks\/[^/]+\/executors\/[^/]+\/tasks\/[^/]+\/browse$/.test(path)) return null;
   const hostname = agent?.hostname;
   const port = agentPort(agent);
   if (!hostname || !/^[A-Za-z0-9.-]+$/.test(hostname) || !port) return null;
-  if (environment !== "development") return `//${hostname}:${port}${path}`;
-  return `/agent-api/${encodeURIComponent(hostname)}/${port}${path}`;
+  return `//${hostname}:${port}/${path}`;
 }
 
 export function latestTaskContainer(task) {

@@ -1,9 +1,11 @@
 import React, { useState } from "react";
+import ArticleIcon from "@mui/icons-material/Article";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import {
   Box,
+  Button,
   IconButton,
-  Link,
+
   Paper,
   Table,
   TableBody,
@@ -15,7 +17,7 @@ import {
   Typography,
 } from "@mui/material";
 import TaskDetailsDialog from "../../dialogs/TaskDetailsDialog";
-import { taskSandboxHref } from "../../dialogs/taskDetails";
+import SandboxDialog from "../../dialogs/SandboxDialog";
 import { FormatTimeDifference, HealthBadge, StateBadge } from "../../libs/functions";
 import { sortByTimestampWithFallback } from "../../libs/sortingHelpers";
 import "../../app/App.css";
@@ -38,6 +40,7 @@ function taskStarted(task) {
 
 export default function TasksTable({ tasks = [], title, showFrameworkId = true }) {
   const [selectedTask, setSelectedTask] = useState(null);
+  const [sandboxTask, setSandboxTask] = useState(null);
 
   // Sort tasks by newest-to-oldest based on latest status timestamp
   const sortedTasks = sortByTimestampWithFallback(tasks, (task) => latestStatus(task)?.timestamp);
@@ -66,7 +69,6 @@ export default function TasksTable({ tasks = [], title, showFrameworkId = true }
                 <TableRow><TableCell colSpan={showFrameworkId ? 9 : 8} align="center" sx={{ py: 4, color: "text.secondary" }}>No tasks.</TableCell></TableRow>
               )}
               {sortedTasks.map((task) => {
-                const sandboxHref = taskSandboxHref(task);
                 return (
                   <TableRow
                     hover
@@ -104,8 +106,17 @@ export default function TasksTable({ tasks = [], title, showFrameworkId = true }
                     <TableCell><HealthBadge health={taskHealth(task)} /></TableCell>
                     <TableCell sx={{ whiteSpace: "nowrap" }}>{taskStarted(task)}</TableCell>
                     <TableCell>
-                      {sandboxHref ? (
-                        <Link href={sandboxHref} onClick={(event) => event.stopPropagation()}>Sandbox</Link>
+                      {task?._agent ? (
+                        <Button
+                          size="small"
+                          startIcon={<ArticleIcon />}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setSandboxTask(task);
+                          }}
+                        >
+                          Sandbox
+                        </Button>
                       ) : "—"}
                     </TableCell>
                   </TableRow>
@@ -117,6 +128,7 @@ export default function TasksTable({ tasks = [], title, showFrameworkId = true }
       </Paper>
 
       <TaskDetailsDialog open={Boolean(selectedTask)} task={selectedTask} onClose={() => setSelectedTask(null)} />
+      {sandboxTask && <SandboxDialog open task={sandboxTask} agent={sandboxTask._agent} onClose={() => setSandboxTask(null)} />}
     </>
   );
 }

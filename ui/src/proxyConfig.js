@@ -11,7 +11,8 @@ function getProxyConfig(env = process.env) {
 }
 
 function getAgentProxyRoute(pathname) {
-  const match = String(pathname || "").match(/^(?:\/agent-api)?\/([^/]+)\/(\d+)(\/api\/v1|\/version|\/state|\/files\/browse|\/metrics\/snapshot|\/slave\/[^/]+\/frameworks\/[^/]+\/executors\/[^/]+\/runs\/[^/]+\/browse)$/);
+  const requestPath = String(pathname || "").split("?", 1)[0];
+  const match = requestPath.match(/^(?:\/agent-api)?\/([^/]+)\/(\d+)(\/api\/v1|\/version|\/state|\/files\/browse|\/metrics\/snapshot)$/);
   if (!match) return null;
   let hostname;
   try {
@@ -26,7 +27,8 @@ function getAgentProxyRoute(pathname) {
 }
 
 function getMasterProxyRoute(pathname) {
-  const match = String(pathname || "").match(/^(?:\/master-api)?\/([^/]+)\/(\d+)(\/metrics\/snapshot)$/);
+  const requestPath = String(pathname || "").split("?", 1)[0];
+  const match = requestPath.match(/^(?:\/master-api)?\/([^/]+)\/(\d+)(\/metrics\/snapshot)$/);
   if (!match) return null;
   let hostname;
   try { hostname = decodeURIComponent(match[1]); } catch (_) { return null; }

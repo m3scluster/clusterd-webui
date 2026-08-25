@@ -1,4 +1,4 @@
-import { agentSandboxEndpoint, latestTaskContainerId } from "../logs/logApi";
+import { agentSandboxEndpoint } from "../logs/logApi";
 
 export function formatTaskTimestamp(timestamp) {
   const value = Number(timestamp);
@@ -74,11 +74,10 @@ export function taskSandboxHref(task) {
   const taskId = task?.id;
   if (!agentId || !frameworkId || !taskId) return null;
 
-  const containerId = latestTaskContainerId(task);
-  if (!task._agent || !containerId) return null;
   const executorId = task.executor_id || taskId;
   const encode = (value) => encodeURIComponent(String(value));
-  return agentSandboxEndpoint(task._agent, `/slave/${encode(agentId)}/frameworks/${encode(frameworkId)}/executors/${encode(executorId)}/runs/${encode(containerId)}/browse`);
+  if (!task._agent) return null;
+  return agentSandboxEndpoint(task._agent, `#/agents/${encode(agentId)}/frameworks/${encode(frameworkId)}/executors/${encode(executorId)}/tasks/${encode(taskId)}/browse`);
 }
 
 export function frameworkHref(frameworkId) {
