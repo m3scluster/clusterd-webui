@@ -33,7 +33,7 @@ export function agentApiEndpoint(agent, environment = process.env.NODE_ENV) {
   return `/agent-api/${encodeURIComponent(hostname)}/${port}/api/v1`;
 }
 
-const AGENT_HTTP_PATHS = new Set(["/state", "/version", "/files/browse", "/metrics/snapshot"]);
+const AGENT_HTTP_PATHS = new Set(["/state", "/version", "/files/browse", "/files/read", "/metrics/snapshot"]);
 
 export function agentHttpEndpoint(agent, path, environment = process.env.NODE_ENV) {
   if (!AGENT_HTTP_PATHS.has(path)) return null;

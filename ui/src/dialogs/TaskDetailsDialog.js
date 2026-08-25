@@ -18,6 +18,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
@@ -27,7 +28,7 @@ import TaskShellDialog from "../shell/TaskShellDialog";
 import FrameworkDetailsDialog from "./FrameworkDetailsDialog";
 import AgentDetailsDialog from "./AgentDetailsDialog";
 import SandboxDialog from "./SandboxDialog";
-import { latestTaskContainerId } from "../logs/logApi";
+import { agentHttpEndpoint, latestTaskContainerId } from "../logs/logApi";
 import { StateBadge } from "../libs/functions";
 import { useAuth } from "../auth/AuthContext";
 import {
@@ -40,6 +41,9 @@ import {
   frameworkHref,
   taskHealth,
   taskHost,
+  taskExecutorId,
+  executorNameFromState,
+  truncateExecutorName,
 } from "./taskDetails";
 
 const EMPTY = "—";
@@ -77,6 +81,7 @@ export default function TaskDetailsDialog({ open, task, onClose }) {
   const [relatedFramework, setRelatedFramework] = React.useState(null);
   const [relatedAgent, setRelatedAgent] = React.useState(null);
   const [sandboxOpen, setSandboxOpen] = React.useState(false);
+  const [executorName, setExecutorName] = React.useState(null);
 
   const statuses = sortTaskStatuses(task?.statuses);
   const advanced = taskAdvancedDetails(task);
@@ -84,6 +89,31 @@ export default function TaskDetailsDialog({ open, task, onClose }) {
 
   const canReadLogs = Boolean(task?._agent && latestTaskContainerId(task));
   const canOpenShell = canReadLogs && Boolean(task?._agent?.hostname && task?._agent?.port);
+
+  React.useEffect(() => {
+    if (!open || !task || !task._agent) {
+      setExecutorName(null);
+      return undefined;
+    }
+
+    const endpoint = agentHttpEndpoint(task._agent, "/state");
+    if (!endpoint) {
+      setExecutorName(null);
+      return undefined;
+    }
+
+    let active = true;
+    setExecutorName(null);
+    request(endpoint)
+      .then((state) => {
+        if (active) setExecutorName(executorNameFromState(task, state));
+      })
+      .catch(() => {
+        if (active) setExecutorName(null);
+      });
+
+    return () => { active = false; };
+  }, [open, request, task]);
 
   const openFramework = async (event) => {
     event.preventDefault();
@@ -149,7 +179,17 @@ export default function TaskDetailsDialog({ open, task, onClose }) {
                 <Grid item xs={12} md={3}><DetailField label="Framework ID" mono>{frameworkHref(task.framework_id) ? <Link href={frameworkHref(task.framework_id)} onClick={openFramework}>{task.framework_id}</Link> : EMPTY}</DetailField></Grid>
                 <Grid item xs={12} md={3}><DetailField label="Agent ID" mono>{agentHref(task.slave_id) ? <Link href={agentHref(task.slave_id)} onClick={openAgent}>{task.slave_id}</Link> : EMPTY}</DetailField></Grid>
                 <Grid item xs={12} md={3}><DetailField label="Host">{taskHost(task)}</DetailField></Grid>
-                <Grid item xs={12} md={3}><DetailField label="Executor ID" mono>{task.executor_id}</DetailField></Grid>
+                <Grid item xs={12} md={3}><DetailField label="Executor ID" mono>{taskExecutorId(task)}</DetailField></Grid>
+                <Grid item xs={12} md={3}>
+                  <DetailField label="Executor Name" mono>
+                    {executorName ? (
+                      <Tooltip title={executorName}>
+                        <Box component="span" sx={{ cursor: "help" }}>{truncateExecutorName(executorName)}</Box>
+                      </Tooltip>
+                    ) : EMPTY}
+                  </DetailField>
+                </Grid>
+                <Grid item xs={12} md={3}><DetailField label="Container Type">{task?.container?.type || EMPTY}</DetailField></Grid>
                 <Grid item xs={12}>
                   <Button startIcon={<ArticleIcon />} variant="outlined" disabled={!canReadLogs} onClick={() => setLogsOpen(true)}>
                     View task logs

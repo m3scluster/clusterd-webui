@@ -20,6 +20,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { useAuth } from "../auth/AuthContext";
 import { latestTaskContainerId, readAgentLogTail, readMasterLogTail } from "./logApi";
+import SyntaxHighlightedText from "../components/SyntaxHighlightedText";
 
 function formatBytes(value) {
   const bytes = Math.max(0, Number(value) || 0);
@@ -129,7 +130,7 @@ export default function LogViewerDialog({ open, onClose, kind, title, agent = nu
               aria-label={`${activeStream} log output`}
               sx={{ bgcolor: "#080b14", color: "#dce6f7", fontFamily: "monospace", fontSize: 13, lineHeight: 1.55, m: 0, minHeight: 420, maxHeight: "65vh", overflow: "auto", p: 2, tabSize: 4, whiteSpace: "pre-wrap", wordBreak: "break-word" }}
             >
-              {current?.data || "No log output."}
+              <SyntaxHighlightedText text={current?.data || "No log output."} language="log" showLineNumbers />
             </Box>
           </Box>
         )}

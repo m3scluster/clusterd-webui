@@ -10,6 +10,9 @@ import {
   taskAdvancedDetails,
   taskHealth,
   taskHost,
+  taskExecutorId,
+  executorNameFromState,
+  truncateExecutorName,
   taskSandboxHref,
 } from "./taskDetails";
 
@@ -31,6 +34,28 @@ test("resolves the task host from its attached agent", () => {
   expect(taskHost({ _agent: { hostname: "agent-1.example" }, hostname: "legacy.example" })).toBe("agent-1.example");
   expect(taskHost({ hostname: "legacy.example" })).toBe("legacy.example");
   expect(taskHost(null)).toBe("—");
+});
+
+test("does not use the task id as an executor id when Mesos omits it", () => {
+  expect(taskExecutorId({ id: "task" })).toBe("—");
+  expect(taskExecutorId({ id: "task", executor_id: "executor" })).toBe("executor");
+  expect(taskExecutorId(null)).toBe("—");
+});
+
+test("finds and truncates an executor name from agent state", () => {
+  const task = { id: "task-1", slave_id: "agent-1", framework_id: "framework-1", executor_id: "executor-1" };
+  const state = {
+    frameworks: [{
+      id: "framework-1",
+      executors: [{ id: "executor-1", name: "A very long executor name for Mesos" }],
+    }],
+  };
+
+  expect(executorNameFromState(task, state)).toBe("A very long executor name for Mesos");
+  expect(truncateExecutorName(executorNameFromState(task, state))).toBe("A very long executor na…");
+  expect(executorNameFromState({ ...task, executor_id: "" }, {
+    frameworks: [{ id: "framework-1", executors: [{ id: "task-1", name: "Command executor" }] }],
+  })).toBe("Command executor");
 });
 
 test("attaches Mesos agents to tasks by slave id", () => {

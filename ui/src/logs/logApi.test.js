@@ -37,6 +37,7 @@ test("builds development and production agent API endpoints", () => {
   expect(agentHttpEndpoint(agent, "/state", "development")).toBe("/agent-api/agent-1.example/5051/state");
   expect(agentHttpEndpoint(agent, "/version", "development")).toBe("/agent-api/agent-1.example/5051/version");
   expect(agentHttpEndpoint(agent, "/files/browse", "production")).toBe("//agent-1.example:5051/files/browse");
+  expect(agentHttpEndpoint(agent, "/files/read", "development")).toBe("/agent-api/agent-1.example/5051/files/read");
   expect(agentHttpEndpoint(agent, "/not-allowed", "production")).toBeNull();
 });
 

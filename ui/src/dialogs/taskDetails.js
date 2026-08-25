@@ -40,6 +40,37 @@ export function taskHost(task) {
   return task?._agent?.hostname || task?.hostname || "—";
 }
 
+export function taskExecutorId(task) {
+  return task?.executor_id || "—";
+}
+
+export function executorNameFromState(task, state) {
+  if (!task?.slave_id || !state) return null;
+
+  const frameworks = [
+    ...(state.frameworks || []),
+    ...(state.completed_frameworks || []),
+  ];
+
+  const framework = frameworks.find((item) => String(item.id) === String(task.framework_id));
+  if (!framework) return null;
+
+  const executors = [
+    ...(framework.executors || []),
+    ...(framework.completed_executors || []),
+  ];
+
+  const executorId = task.executor_id || task.id;
+  const executor = executors.find((item) => String(item.id) === String(executorId));
+
+  return executor?.name || null;
+}
+
+export function truncateExecutorName(name) {
+  if (!name) return name;
+  return name.length > 23 ? `${name.substring(0, 23)}…` : name;
+}
+
 function indexAgents(agents) {
   return new Map(
     (Array.isArray(agents) ? agents : []).map((agent) => [agent.id, agent]),

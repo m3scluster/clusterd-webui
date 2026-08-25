@@ -12,7 +12,7 @@ function getProxyConfig(env = process.env) {
 
 function getAgentProxyRoute(pathname) {
   const requestPath = String(pathname || "").split("?", 1)[0];
-  const match = requestPath.match(/^(?:\/agent-api)?\/([^/]+)\/(\d+)(\/api\/v1|\/version|\/state|\/files\/browse|\/metrics\/snapshot)$/);
+  const match = requestPath.match(/^(?:\/agent-api)?\/([^/]+)\/(\d+)(\/api\/v1|\/version|\/state|\/files\/browse|\/files\/read|\/metrics\/snapshot)$/);
   if (!match) return null;
   let hostname;
   try {

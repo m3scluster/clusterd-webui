@@ -1,7 +1,7 @@
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
-import TasksTable from "./TasksTable";
+import TasksTable, { taskContainerizer } from "./TasksTable";
 
 jest.mock("../../dialogs/TaskDetailsDialog", () => ({ open, task }) => (
   open ? <div data-testid="selected-task">{task?.id}</div> : null
@@ -14,6 +14,28 @@ jest.mock("@mui/material", () => {
     IconButton: ({ children, sx, ...props }) => react.createElement("button", props, children),
     Tooltip: ({ children }) => children,
   };
+});
+
+test("maps Docker and default tasks to their containerizers", () => {
+  expect(taskContainerizer({ container: { type: "DOCKER" } })).toBe("DOCKER");
+  expect(taskContainerizer({ container: { type: "MESOS" } })).toBe("MESOS");
+  expect(taskContainerizer({})).toBe("MESOS");
+});
+
+test("shows the containerizer column and accessible type labels", () => {
+  const markup = renderToStaticMarkup(
+    <TasksTable
+      title="Active Tasks"
+      tasks={[
+        { id: "docker-task", container: { type: "DOCKER" }, statuses: [] },
+        { id: "mesos-task", container: { type: "MESOS" }, statuses: [] },
+      ]}
+    />,
+  );
+
+  expect(markup).not.toContain(">Containerizer<");
+  expect(markup).toContain("DOCKER containerizer");
+  expect(markup).toContain("MESOS containerizer");
 });
 
 test("omits the host column and hostname from the tasks overview", () => {

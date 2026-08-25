@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import clusterdLogo from "../../images/clusterd.png";
 import ArticleIcon from "@mui/icons-material/Article";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import {
@@ -21,6 +22,24 @@ import SandboxDialog from "../../dialogs/SandboxDialog";
 import { FormatTimeDifference, HealthBadge, StateBadge } from "../../libs/functions";
 import { sortByTimestampWithFallback } from "../../libs/sortingHelpers";
 import "../../app/App.css";
+
+export function taskContainerizer(task) {
+  return String(task?.container?.type || "MESOS").toUpperCase() === "DOCKER" ? "DOCKER" : "MESOS";
+}
+
+function DockerIcon() {
+  return (
+    <Box component="svg" viewBox="0 0 48 32" role="img" aria-hidden="true" sx={{ width: 24, height: 18 }}>
+      <path fill="#2496ed" d="M2 18h7v6H2zm8-8h7v6h-7zm8 0h7v6h-7zm8 0h7v6h-7zm8 4h7v6h-7zM10 18h7v6h-7zm8 0h7v6h-7zm8 0h7v6h-7z" />
+      <path fill="#2496ed" d="M5 27c2.5 2.8 6.4 4 11 4h10c8 0 14-4.2 17-12H7c-.2 3 0 5.5-2 8z" />
+    </Box>
+  );
+}
+
+function ContainerizerIcon({ task }) {
+  if (taskContainerizer(task) === "DOCKER") return <DockerIcon />;
+  return <Box component="img" src={clusterdLogo} alt="" sx={{ width: 24, height: 24, objectFit: "contain" }} />;
+}
 
 function latestStatus(task) {
   return task.statuses?.at(-1);
@@ -50,10 +69,11 @@ export default function TasksTable({ tasks = [], title, showFrameworkId = true }
       <Paper className="table-card" elevation={0}>
         <Typography className="table-title" variant="h6">{title}</Typography>
         <TableContainer component={Box}>
-          <Table sx={{ minWidth: showFrameworkId ? 950 : 760 }} size="small" aria-label={title}>
+          <Table sx={{ minWidth: showFrameworkId ? 1000 : 810 }} size="small" aria-label={title}>
             <TableHead>
               <TableRow>
                 <TableCell width={52} aria-label="Actions" />
+                <TableCell align="center" aria-label="Containerizer" />
                 {showFrameworkId && <TableCell>Framework ID</TableCell>}
                 <TableCell>Task ID</TableCell>
                 <TableCell>Task name</TableCell>
@@ -66,7 +86,7 @@ export default function TasksTable({ tasks = [], title, showFrameworkId = true }
             </TableHead>
             <TableBody>
               {sortedTasks.length === 0 && (
-                <TableRow><TableCell colSpan={showFrameworkId ? 9 : 8} align="center" sx={{ py: 4, color: "text.secondary" }}>No tasks.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={showFrameworkId ? 10 : 9} align="center" sx={{ py: 4, color: "text.secondary" }}>No tasks.</TableCell></TableRow>
               )}
               {sortedTasks.map((task) => {
                 return (
@@ -96,6 +116,17 @@ export default function TasksTable({ tasks = [], title, showFrameworkId = true }
                         >
                           <VisibilityOutlinedIcon fontSize="small" />
                         </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell align="center" aria-label="Containerizer">
+                      <Tooltip title={taskContainerizer(task) === "DOCKER" ? "Docker" : "Mesos"}>
+                        <Box
+                          component="span"
+                          aria-label={`${taskContainerizer(task)} containerizer`}
+                          sx={{ display: "inline-flex", alignItems: "center" }}
+                        >
+                          <ContainerizerIcon task={task} />
+                        </Box>
                       </Tooltip>
                     </TableCell>
                     {showFrameworkId && <TableCell className="id-cell" title={task.framework_id}>{task.framework_id || "—"}</TableCell>}
