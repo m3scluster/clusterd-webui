@@ -89,3 +89,20 @@ test("opens an authenticated shell session and renders streamed output", async (
   expect(container.textContent).toContain("Task shell");
   expect(container.textContent).toContain("synthetic-shell-output");
 });
+
+test("closes from the title bar close button", () => {
+  const onClose = jest.fn();
+  const task = {
+    id: "task-1",
+    _agent: { hostname: "agent-1.example", port: 5051 },
+    statuses: [{ container_status: { container_id: { value: "task-container" } } }],
+  };
+
+  act(() => {
+    root.render(<TaskShellDialog open task={task} onClose={onClose} />);
+  });
+
+  container.querySelector('[aria-label="Close task shell"]').click();
+
+  expect(onClose).toHaveBeenCalledTimes(1);
+});

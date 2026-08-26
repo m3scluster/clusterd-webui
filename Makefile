@@ -10,10 +10,10 @@ endif
 all: serve
 
 serve:
-	cd ui && yarn install --production=false && CLUSTERD_PROXY_TARGET="$(CLUSTERD_PROXY_TARGET)" REACT_APP_VERSION="$(VERSION)" yarn start
+	cd ui && corepack yarn install --production=false && CLUSTERD_PROXY_TARGET="$(CLUSTERD_PROXY_TARGET)" REACT_APP_VERSION="$(VERSION)" corepack yarn start
 
 build:
-	cd ui && REACT_APP_VERSION="$(VERSION)" yarn build
+	cd ui && REACT_APP_VERSION="$(VERSION)" corepack yarn build
 
 book:
 	$(MDBOOK) build book
@@ -38,6 +38,6 @@ deploy: book
 		echo "Documentation unchanged; nothing to deploy."; \
 	else \
 		git -C "$$tmp" -c user.name="ClusterD docs deploy" -c user.email="docs@localhost" commit -m "Deploy documentation" >/dev/null; \
-		git -C "$$tmp" push origin HEAD:gh-pages; \
+		git -C "$$tmp" push origin HEAD:refs/heads/gh-pages; \
 	fi
 

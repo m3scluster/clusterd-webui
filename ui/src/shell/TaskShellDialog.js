@@ -1,4 +1,5 @@
 import React from "react";
+import CloseIcon from "@mui/icons-material/Close";
 import {
   Alert,
   Box,
@@ -9,6 +10,7 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
+  IconButton,
   InputLabel,
   MenuItem,
   Select,
@@ -129,6 +131,9 @@ export default function TaskShellDialog({ open, task, onClose }) {
   return (
     <Dialog open={open} onClose={close} fullWidth maxWidth="lg" scroll="paper">
       <DialogTitle>
+        <IconButton aria-label="Close task shell" onClick={close} sx={{ position: "absolute", right: 12, top: 16 }}>
+          <CloseIcon />
+        </IconButton>
         <Typography variant="overline" color="primary.light">Task shell</Typography>
         <Typography variant="h5" fontWeight={700}>{task?.name || task?.id || "Task"}</Typography>
       </DialogTitle>
