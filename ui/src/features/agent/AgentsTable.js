@@ -63,6 +63,12 @@ export default function AgentsTable({ agents = [] }) {
   const sortedAgents = sortByTimestamp(agents, "registered_time");
 
   React.useEffect(() => {
+    if (!selectedAgent) return;
+    const refreshedAgent = agents.find((agent) => String(agent.id) === String(selectedAgent.id));
+    if (refreshedAgent && JSON.stringify(refreshedAgent) !== JSON.stringify(selectedAgent)) setSelectedAgent(refreshedAgent);
+  }, [agents, selectedAgent]);
+
+  React.useEffect(() => {
     const selectFromHash = () => {
       const id = resourceIdFromHash(window.location.hash, "agents");
       if (id) {

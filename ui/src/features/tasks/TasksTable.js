@@ -61,6 +61,12 @@ export default function TasksTable({ tasks = [], title, showFrameworkId = true }
   const [selectedTask, setSelectedTask] = useState(null);
   const [sandboxTask, setSandboxTask] = useState(null);
 
+  React.useEffect(() => {
+    if (!selectedTask) return;
+    const refreshedTask = tasks.find((task) => String(task.id) === String(selectedTask.id));
+    if (refreshedTask && JSON.stringify(refreshedTask) !== JSON.stringify(selectedTask)) setSelectedTask(refreshedTask);
+  }, [selectedTask, tasks]);
+
   // Sort tasks by newest-to-oldest based on latest status timestamp
   const sortedTasks = sortByTimestampWithFallback(tasks, (task) => latestStatus(task)?.timestamp);
 

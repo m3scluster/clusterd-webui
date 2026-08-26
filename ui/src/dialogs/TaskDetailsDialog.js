@@ -103,7 +103,6 @@ export default function TaskDetailsDialog({ open, task, onClose }) {
     }
 
     let active = true;
-    setExecutorName(null);
     request(endpoint)
       .then((state) => {
         if (active) setExecutorName(executorNameFromState(task, state));

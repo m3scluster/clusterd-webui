@@ -28,13 +28,22 @@ import { resourceIdFromHash } from "../../app/hashNavigation";
 export default function FrameworksTable({ frameworks = [], title }) {
   const [selectedFramework, setSelectedFramework] = useState(null);
 
+  React.useEffect(() => {
+    if (!selectedFramework) return;
+    const refreshedFramework = frameworks.find((framework) => String(framework.id) === String(selectedFramework.id));
+    if (refreshedFramework && JSON.stringify(refreshedFramework) !== JSON.stringify(selectedFramework)) setSelectedFramework(refreshedFramework);
+  }, [frameworks, selectedFramework]);
+
   // Sort frameworks by newest-to-oldest based on registered_time
   const sortedFrameworks = sortByTimestamp(frameworks, 'registered_time');
 
   React.useEffect(() => {
     const selectFromHash = () => {
       const id = resourceIdFromHash(window.location.hash, "frameworks");
-      if (id) setSelectedFramework(frameworks.find((framework) => String(framework.id) === id) || null);
+      if (id) {
+        const framework = frameworks.find((candidate) => String(candidate.id) === id);
+        if (framework) setSelectedFramework(framework);
+      }
     };
     selectFromHash();
     window.addEventListener("hashchange", selectFromHash);

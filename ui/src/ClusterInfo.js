@@ -41,6 +41,17 @@ export default function ClusterInfo() {
     return () => window.clearInterval(timer);
   }, [getMesosState]);
 
+  useEffect(() => {
+    if (!clusterInfo?.masters) return;
+    setSelectedMaster((current) => {
+      if (!current) return current;
+      const refreshedMaster = clusterInfo.masters.find((master) => String(master.id) === String(current.id));
+      return refreshedMaster
+        ? { ...refreshedMaster, isLeader: clusterInfo.currentLeaderId === refreshedMaster.id }
+        : current;
+    });
+  }, [clusterInfo]);
+
   return (
     <>
       <Stack spacing={2}>

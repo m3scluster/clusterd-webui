@@ -15,7 +15,7 @@ import {
   Typography
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthContext";
 import { masterHttpEndpoint } from "../masterUtils";
 import { normalizeMetricsResponse } from "../utilization";
@@ -25,12 +25,18 @@ export default function MasterDetailsDialog({ open, master, onClose }) {
   const [loading, setLoading] = useState(false);
   const [metrics, setMetrics] = useState({});
   const [error, setError] = useState("");
+  const metricsMasterRef = useRef(null);
   const { request } = useAuth();
 
 
   // Get metrics for a specific master server
   const fetchMasterMetrics = useCallback(async () => {
-    setLoading(true); 
+    const masterId = master?.id || master?.hostname;
+    const firstSnapshotForMaster = metricsMasterRef.current !== masterId;
+    if (firstSnapshotForMaster) {
+      metricsMasterRef.current = masterId;
+      setLoading(true);
+    }
     setError("");
     
     try {
@@ -42,7 +48,7 @@ export default function MasterDetailsDialog({ open, master, onClose }) {
       setError(err.message || `Failed to fetch metrics for manager ${master.id}`);
       console.error("Master metrics error:", err);
     } finally {
-      setLoading(false);
+      if (firstSnapshotForMaster) setLoading(false);
     }
   }, [master, request]);
 
