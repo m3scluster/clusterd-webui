@@ -10,7 +10,14 @@ function rewriteWithQuery(path, request, routeGetter) {
 
 module.exports = function setupProxy(app) {
   const proxy = createProxyMiddleware(getProxyConfig());
-  app.use(["/api", "/master", "/metrics", "/frameworks", "/slaves", "/state"], proxy);
+  const apiPrefixes = ["/api", "/master", "/metrics", "/frameworks", "/slaves", "/state"];
+  app.use((request, response, next) => {
+    const path = String(request.url || "").split("?", 1)[0];
+    if (apiPrefixes.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))) {
+      return proxy(request, response, next);
+    }
+    return next();
+  });
 
   const agentProxy = createProxyMiddleware({
     target: "https://127.0.0.1:5051",

@@ -1,7 +1,7 @@
 .PHONY: serve build book book-serve deploy
 
 CLUSTERD_PROXY_TARGET ?= https://devtest.lab.internal:5050
-VERSION ?= 0.2.0
+VERSION ?= 1.0.0
 MDBOOK := $(shell command -v mdbook 2>/dev/null)
 ifeq ($(MDBOOK),)
 MDBOOK := nix shell nixpkgs\#mdbook --command mdbook
@@ -10,7 +10,7 @@ endif
 all: serve
 
 serve:
-	cd ui && corepack yarn install --production=false && CLUSTERD_PROXY_TARGET="$(CLUSTERD_PROXY_TARGET)" REACT_APP_VERSION="$(VERSION)" corepack yarn start
+	cd ui && corepack yarn install --production=false --silent && CLUSTERD_PROXY_TARGET="$(CLUSTERD_PROXY_TARGET)" REACT_APP_VERSION="$(VERSION)" corepack yarn start --host 0.0.0.0
 
 build:
 	cd ui && REACT_APP_VERSION="$(VERSION)" corepack yarn build
