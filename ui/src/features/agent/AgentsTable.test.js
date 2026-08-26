@@ -40,3 +40,26 @@ test("opens agent details when its table row is clicked", () => {
 
   expect(container.querySelector('[data-testid="selected-agent"]')?.textContent).toBe("agent-1");
 });
+
+test("keeps agent details open when the live agent list refreshes", () => {
+  const agent = {
+    id: "agent-1",
+    hostname: "agent-1.example",
+    active: true,
+    resources: { cpus: 4, mem: 8192, disk: 10000, gpus: 0 },
+  };
+  act(() => {
+    root.render(<AgentsTable agents={[agent]} />);
+  });
+
+  act(() => {
+    container.querySelector("tbody tr").dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
+  expect(container.querySelector('[data-testid="selected-agent"]')?.textContent).toBe("agent-1");
+
+  act(() => {
+    root.render(<AgentsTable agents={[{ ...agent, _metrics: { "slave/cpus_utilization": 42 } }]} />);
+  });
+
+  expect(container.querySelector('[data-testid="selected-agent"]')?.textContent).toBe("agent-1");
+});

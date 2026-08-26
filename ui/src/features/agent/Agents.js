@@ -30,13 +30,15 @@ export default function Data() {
 
   useEffect(() => {
     getMesosAgents();
+    const timer = window.setInterval(getMesosAgents, 5000);
+    return () => window.clearInterval(timer);
   }, [getMesosAgents]);
 
   return (
     <Box style={{ textAlign: 'center', marginBottom: '20px' }}>
       <Box>
         <div className="tasks">
-        {loading ? (<h4>Loading...</h4>) :
+        {loading && agents.length === 0 ? (<h4>Loading...</h4>) :
           <div>
             <p></p>
             <AgentsTable agents={agents}/>

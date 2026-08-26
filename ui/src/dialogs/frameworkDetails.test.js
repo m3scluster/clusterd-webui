@@ -75,8 +75,11 @@ test("searches task names and IDs independently of task state", () => {
 
 test("limits the framework preview to ten running tasks", () => {
   const running = Array.from({ length: 12 }, (_value, index) => ({ id: `running-${index}`, state: "TASK_RUNNING" }));
-  const tasks = [{ id: "failed", state: "TASK_FAILED" }, ...running, { id: "finished", state: "TASK_FINISHED" }];
+  const staging = { id: "staging", state: "TASK_STAGING" };
+  const starting = { id: "starting", state: "TASK_STARTING" };
+  const tasks = [{ id: "failed", state: "TASK_FAILED" }, ...running, staging, starting, { id: "finished", state: "TASK_FINISHED" }];
   expect(frameworkTaskPreview(tasks)).toEqual(running.slice(0, 10));
+  expect(frameworkTaskPreview([staging, starting])).toEqual([staging, starting]);
 });
 
 test("only accepts HTTP framework Web UI links", () => {

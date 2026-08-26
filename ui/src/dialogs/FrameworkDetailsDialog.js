@@ -104,9 +104,9 @@ export default function FrameworkDetailsDialog({ open, framework, onClose }) {
                 <Grid item xs={12} sm={6} md={3}><DetailField label="Host">{framework.hostname || EMPTY}</DetailField></Grid>
                 <Grid item xs={12} sm={6} md={3}><DetailField label="User">{framework.user || EMPTY}</DetailField></Grid>
                 <Grid item xs={12} sm={6} md={3}><DetailField label="Principal">{framework.principal || EMPTY}</DetailField></Grid>
-                <Grid item xs={12} sm={6} md={4}><DetailField label="Registered">{formatFrameworkTimestamp(framework.registered_time)}</DetailField></Grid>
-                <Grid item xs={12} sm={6} md={4}><DetailField label="Reregistered">{formatFrameworkTimestamp(framework.reregistered_time)}</DetailField></Grid>
-                <Grid item xs={12} sm={6} md={4}><DetailField label="Unregistered">{formatFrameworkTimestamp(framework.unregistered_time)}</DetailField></Grid>
+                <Grid item xs={12} sm={6} md={3}><DetailField label="Registered">{formatFrameworkTimestamp(framework.registered_time)}</DetailField></Grid>
+                <Grid item xs={12} sm={6} md={3}><DetailField label="Reregistered">{formatFrameworkTimestamp(framework.reregistered_time)}</DetailField></Grid>
+                <Grid item xs={12} sm={6} md={3}><DetailField label="Unregistered">{formatFrameworkTimestamp(framework.unregistered_time)}</DetailField></Grid>
               </Grid>
             </Box>
 

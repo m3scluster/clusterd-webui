@@ -30,7 +30,7 @@ import {
   formatAgentTimestamp,
   visibleAgentTasks,
 } from "./agentDetails";
-import { UTILIZATION_TYPES, utilizationColor, utilizationValue } from "../utilization";
+import { normalizeMetricsResponse, UTILIZATION_TYPES, utilizationColor, utilizationValue } from "../utilization";
 
 const EMPTY = "—";
 
@@ -81,6 +81,7 @@ export default function AgentDetailsDialog({ open, agent, onClose }) {
   const [logsOpen, setLogsOpen] = React.useState(false);
   const [product, setProduct] = React.useState(agent?.name || EMPTY);
   const [agentVersion, setAgentVersion] = React.useState(agent?.version || EMPTY);
+  const [metrics, setMetrics] = React.useState(agent?._metrics || {});
   const { request } = useAuth();
   const status = agentStatus(agent);
   const advanced = agentAdvancedDetails(agent);
@@ -112,6 +113,33 @@ export default function AgentDetailsDialog({ open, agent, onClose }) {
       });
     return () => {
       active = false;
+    };
+  }, [agent, open, request]);
+
+  React.useEffect(() => {
+    if (!open || !agent) return undefined;
+    let active = true;
+    const fetchMetrics = async () => {
+      const endpoint = agentHttpEndpoint(agent, "/metrics/snapshot");
+      if (!endpoint) return;
+      try {
+        const metricData = await request(endpoint);
+        if (active) {
+          const nextMetrics = normalizeMetricsResponse(metricData);
+          setMetrics((currentMetrics) => (
+            JSON.stringify(currentMetrics) === JSON.stringify(nextMetrics) ? currentMetrics : nextMetrics
+          ));
+        }
+      } catch (_) {
+        // Keep the last successful snapshot visible.
+      }
+    };
+    if (agent._metrics) setMetrics(agent._metrics);
+    fetchMetrics();
+    const timer = window.setInterval(fetchMetrics, 5000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
     };
   }, [agent, open, request]);
 
@@ -163,7 +191,7 @@ export default function AgentDetailsDialog({ open, agent, onClose }) {
               <Typography variant="h6" fontWeight={700} gutterBottom>Live utilization</Typography>
               <Grid container spacing={2}>
                 {UTILIZATION_TYPES.map(({ name, label }) => {
-                  const value = utilizationValue(agent._metrics, "slave", name);
+                  const value = utilizationValue(metrics, "slave", name);
                   return <Grid item xs={6} sm={4} md={2.4} key={name}>
                     <Paper variant="outlined" sx={{ p: 1.5, textAlign: "center", borderTop: 5, borderColor: utilizationColor(value) }}>
                       <Typography variant="caption" color="text.secondary">{label}</Typography>

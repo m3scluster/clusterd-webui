@@ -65,7 +65,10 @@ export default function AgentsTable({ agents = [] }) {
   React.useEffect(() => {
     const selectFromHash = () => {
       const id = resourceIdFromHash(window.location.hash, "agents");
-      if (id) setSelectedAgent(agents.find((agent) => String(agent.id) === id) || null);
+      if (id) {
+        const agent = agents.find((candidate) => String(candidate.id) === id);
+        if (agent) setSelectedAgent(agent);
+      }
     };
     selectFromHash();
     window.addEventListener("hashchange", selectFromHash);

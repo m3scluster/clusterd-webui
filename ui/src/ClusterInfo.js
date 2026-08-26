@@ -37,6 +37,8 @@ export default function ClusterInfo() {
 
   useEffect(() => {
     getMesosState();
+    const timer = window.setInterval(getMesosState, 5000);
+    return () => window.clearInterval(timer);
   }, [getMesosState]);
 
   return (

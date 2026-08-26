@@ -82,7 +82,7 @@ export function filterFrameworkTasks(tasks, query) {
 
 export function frameworkTaskPreview(tasks) {
   return (Array.isArray(tasks) ? tasks : [])
-    .filter((task) => task?.state === "TASK_RUNNING")
+    .filter((task) => ["TASK_RUNNING", "TASK_STAGING", "TASK_STARTING"].includes(task?.state))
     .slice(0, 10);
 }
 

@@ -49,7 +49,10 @@ export default function MasterDetailsDialog({ open, master, onClose }) {
   useEffect(() => {
     if (open && master) {
       fetchMasterMetrics();
+      const timer = window.setInterval(fetchMasterMetrics, 5000);
+      return () => window.clearInterval(timer);
     }
+    return undefined;
   }, [open, master, fetchMasterMetrics]);
 
   return (
