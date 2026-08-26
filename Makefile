@@ -13,7 +13,7 @@ serve:
 	cd ui && corepack yarn install --production=false --silent && CLUSTERD_PROXY_TARGET="$(CLUSTERD_PROXY_TARGET)" REACT_APP_VERSION="$(VERSION)" corepack yarn start --host 0.0.0.0
 
 build:
-	cd ui && REACT_APP_VERSION="$(VERSION)" corepack yarn build
+	cd ui && corepack yarn install --production=false --ignore-scripts --silent && REACT_APP_VERSION="$(VERSION)" corepack yarn build
 
 book:
 	$(MDBOOK) build book
