@@ -1,0 +1,14 @@
+[book]
+title = "ClusterD WebUI – Documentation"
+description = "User and operations documentation for the ClusterD WebUI"
+authors = ["AVENTER"]
+language = "en"
+
+[build]
+build-dir = "build"
+create-missing = true
+
+[output.html]
+git-repository-url = "https://github.com/AVENTER/clusterd-webui"
+edit-url-template = "https://github.com/AVENTER/clusterd-webui/edit/master/book/src/{path}"
+

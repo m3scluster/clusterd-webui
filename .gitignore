@@ -1,6 +1,7 @@
 src/node_modules/**
 ui/node_modules/
 ui/build
+book/build/
 
 # vim files
 *.swp
