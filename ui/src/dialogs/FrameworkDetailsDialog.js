@@ -67,7 +67,9 @@ export default function FrameworkDetailsDialog({ open, framework, onClose }) {
   const status = frameworkStatus(framework);
   const counts = frameworkTaskCounts(framework);
   const tasks = frameworkTasks(framework);
-  const runningTasks = tasks.filter((task) => task?.state === "TASK_RUNNING");
+  const runningTasks = tasks.filter((task) =>
+    ["TASK_RUNNING", "TASK_STAGING", "TASK_STARTING"].includes(task?.state)
+  );
   const previewTasks = frameworkTaskPreview(tasks);
   const filteredTasks = filterFrameworkTasks(tasks, taskSearch);
   const roles = frameworkRoles(framework);
