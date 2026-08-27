@@ -22,6 +22,7 @@ import SandboxDialog from "../../dialogs/SandboxDialog";
 import { FormatTimeDifference, HealthBadge, StateBadge } from "../../libs/functions";
 import { sortByTimestampWithFallback } from "../../libs/sortingHelpers";
 import "../../app/App.css";
+import { PAGE_SIZE, PaginationControls, pageCountFor } from "../../components/PaginationControls";
 
 export function taskContainerizer(task) {
   return String(task?.container?.type || "MESOS").toUpperCase() === "DOCKER" ? "DOCKER" : "MESOS";
@@ -57,9 +58,10 @@ function taskStarted(task) {
   return timestamp ? `${FormatTimeDifference(timestamp)} ago` : "—";
 }
 
-export default function TasksTable({ tasks = [], title, showFrameworkId = true }) {
+export default function TasksTable({ tasks = [], title, showFrameworkId = true, pageSize = PAGE_SIZE }) {
   const [selectedTask, setSelectedTask] = useState(null);
   const [sandboxTask, setSandboxTask] = useState(null);
+  const [page, setPage] = useState(1);
 
   React.useEffect(() => {
     if (!selectedTask) return;
@@ -69,6 +71,9 @@ export default function TasksTable({ tasks = [], title, showFrameworkId = true }
 
   // Sort tasks by newest-to-oldest based on latest status timestamp
   const sortedTasks = sortByTimestampWithFallback(tasks, (task) => latestStatus(task)?.timestamp);
+  const pageCount = pageCountFor(sortedTasks.length, pageSize);
+  const pagedTasks = sortedTasks.slice((page - 1) * pageSize, page * pageSize);
+  React.useEffect(() => setPage((current) => Math.min(current, pageCount)), [pageCount]);
 
   return (
     <>
@@ -94,7 +99,7 @@ export default function TasksTable({ tasks = [], title, showFrameworkId = true }
               {sortedTasks.length === 0 && (
                 <TableRow><TableCell colSpan={showFrameworkId ? 10 : 9} align="center" sx={{ py: 4, color: "text.secondary" }}>No tasks.</TableCell></TableRow>
               )}
-              {sortedTasks.map((task) => {
+              {pagedTasks.map((task) => {
                 return (
                   <TableRow
                     hover
@@ -162,6 +167,7 @@ export default function TasksTable({ tasks = [], title, showFrameworkId = true }
             </TableBody>
           </Table>
         </TableContainer>
+        <PaginationControls page={page} pageCount={pageCount} onPageChange={setPage} />
       </Paper>
 
       <TaskDetailsDialog open={Boolean(selectedTask)} task={selectedTask} onClose={() => setSelectedTask(null)} />

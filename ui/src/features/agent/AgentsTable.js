@@ -19,6 +19,7 @@ import AgentDetailsDialog from "../../dialogs/AgentDetailsDialog";
 import { sortByTimestamp } from "../../libs/sortingHelpers";
 import { resourceIdFromHash } from "../../app/hashNavigation";
 import { UTILIZATION_TYPES, utilizationColor, utilizationValue } from "../../utilization";
+import { PAGE_SIZE, PaginationControls, pageCountFor } from "../../components/PaginationControls";
 
 function StatusChip({ agent }) {
   if (agent.active) return <Chip label="Active" color="success" size="small" />;
@@ -60,7 +61,11 @@ function UtilizationCell({ agent }) {
 
 export default function AgentsTable({ agents = [] }) {
   const [selectedAgent, setSelectedAgent] = useState(null);
+  const [page, setPage] = useState(1);
   const sortedAgents = sortByTimestamp(agents, "registered_time");
+  const pageCount = pageCountFor(sortedAgents.length);
+  const pagedAgents = sortedAgents.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  React.useEffect(() => setPage((current) => Math.min(current, pageCount)), [pageCount]);
 
   React.useEffect(() => {
     if (!selectedAgent) return;
@@ -101,7 +106,7 @@ export default function AgentsTable({ agents = [] }) {
               {agents.length === 0 && (
                 <TableRow><TableCell colSpan={6} align="center" sx={{ py: 4, color: "text.secondary" }}>No agents.</TableCell></TableRow>
               )}
-              {sortedAgents.map((agent) => (
+              {pagedAgents.map((agent) => (
                 <TableRow
                   hover
                   key={agent.id}
@@ -129,6 +134,7 @@ export default function AgentsTable({ agents = [] }) {
             </TableBody>
           </Table>
         </TableContainer>
+        <PaginationControls page={page} pageCount={pageCount} onPageChange={setPage} />
       </Paper>
 
       <AgentDetailsDialog

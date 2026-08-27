@@ -24,9 +24,11 @@ import {
 } from "../../dialogs/frameworkDetails";
 import { sortByTimestamp } from "../../libs/sortingHelpers";
 import { resourceIdFromHash } from "../../app/hashNavigation";
+import { PAGE_SIZE, PaginationControls, pageCountFor } from "../../components/PaginationControls";
 
 export default function FrameworksTable({ frameworks = [], title }) {
   const [selectedFramework, setSelectedFramework] = useState(null);
+  const [page, setPage] = useState(1);
 
   React.useEffect(() => {
     if (!selectedFramework) return;
@@ -36,6 +38,9 @@ export default function FrameworksTable({ frameworks = [], title }) {
 
   // Sort frameworks by newest-to-oldest based on registered_time
   const sortedFrameworks = sortByTimestamp(frameworks, 'registered_time');
+  const pageCount = pageCountFor(sortedFrameworks.length);
+  const pagedFrameworks = sortedFrameworks.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  React.useEffect(() => setPage((current) => Math.min(current, pageCount)), [pageCount]);
 
   React.useEffect(() => {
     const selectFromHash = () => {
@@ -76,7 +81,7 @@ export default function FrameworksTable({ frameworks = [], title }) {
                   <TableCell colSpan={10} align="center" sx={{ py: 4, color: "text.secondary" }}>No frameworks.</TableCell>
                 </TableRow>
               )}
-              {sortedFrameworks.map((framework) => {
+              {pagedFrameworks.map((framework) => {
                 const status = frameworkStatus(framework);
                 const counts = frameworkTaskCounts(framework);
                 return (
@@ -112,6 +117,7 @@ export default function FrameworksTable({ frameworks = [], title }) {
             </TableBody>
           </Table>
         </TableContainer>
+        <PaginationControls page={page} pageCount={pageCount} onPageChange={setPage} />
       </Paper>
 
       <FrameworkDetailsDialog

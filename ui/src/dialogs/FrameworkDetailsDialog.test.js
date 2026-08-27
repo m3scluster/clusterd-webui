@@ -12,8 +12,8 @@ jest.mock("@mui/material", () => {
   };
 });
 
-jest.mock("../features/tasks/TasksTable", () => ({ tasks, title, showFrameworkId }) => (
-  <div data-testid="framework-tasks" data-title={title} data-framework-id={String(showFrameworkId)}>
+jest.mock("../features/tasks/TasksTable", () => ({ tasks, title, showFrameworkId, pageSize }) => (
+  <div data-testid="framework-tasks" data-title={title} data-framework-id={String(showFrameworkId)} data-page-size={String(pageSize || "")}>
     {tasks.map((task) => task.id).join(",")}
   </div>
 ));
@@ -47,19 +47,20 @@ function frameworkFixture() {
   };
 }
 
-test("shows a ten-task running preview without the redundant framework ID", () => {
+test("paginates running tasks by ten without the redundant framework ID", () => {
   act(() => {
     root.render(<FrameworkDetailsDialog open onClose={() => {}} framework={frameworkFixture()} />);
   });
 
   const preview = container.querySelector('[data-testid="framework-tasks"]');
-  expect(preview?.dataset.title).toBe("Running tasks (10 of 12)");
+  expect(preview?.dataset.title).toBe("Running tasks (12)");
   expect(preview?.dataset.frameworkId).toBe("false");
+  expect(preview?.dataset.pageSize).toBe("10");
   expect(preview?.textContent).toContain("running-0");
   expect(preview?.textContent).toContain("running-9");
-  expect(preview?.textContent).not.toContain("running-10");
+  expect(preview?.textContent).toContain("running-10");
   expect(preview?.textContent).not.toContain("finished-task");
-  expect(preview?.parentElement?.style.overflowY).toBe("auto");
+  expect(preview?.parentElement?.style.overflowY).toBe("");
 });
 
 test("opens the complete task list and searches name or ID across all states", () => {

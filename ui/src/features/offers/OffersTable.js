@@ -12,9 +12,14 @@ import {
   Typography,
 } from "@mui/material";
 import { formatFrameworkResource } from "../../dialogs/frameworkDetails";
+import { PAGE_SIZE, PaginationControls, pageCountFor } from "../../components/PaginationControls";
 
 export default function OffersTable({ offers = [] }) {
   const sortedOffers = Array.isArray(offers) ? [...offers] : [];
+  const [page, setPage] = React.useState(1);
+  const pageCount = pageCountFor(sortedOffers.length);
+  const pagedOffers = sortedOffers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  React.useEffect(() => setPage((current) => Math.min(current, pageCount)), [pageCount]);
 
   return (
     <Paper elevation={0}>
@@ -39,7 +44,7 @@ export default function OffersTable({ offers = [] }) {
                 <TableCell colSpan={8} align="center" sx={{ py: 4, color: "text.secondary" }}>No offers.</TableCell>
               </TableRow>
             )}
-            {sortedOffers.map((offer) => (
+            {pagedOffers.map((offer) => (
               <TableRow
                 hover
                 key={offer.id}
@@ -64,6 +69,7 @@ export default function OffersTable({ offers = [] }) {
             ))}
           </TableBody>
         </Table>
+        <PaginationControls page={page} pageCount={pageCount} onPageChange={setPage} />
       </TableContainer>
     </Paper>
   );

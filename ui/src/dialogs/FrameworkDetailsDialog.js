@@ -24,7 +24,6 @@ import {
   frameworkRoles,
   frameworkStatus,
   frameworkTaskCounts,
-  frameworkTaskPreview,
   frameworkTasks,
   frameworkWebUiUrl,
 } from "./frameworkDetails";
@@ -70,7 +69,7 @@ export default function FrameworkDetailsDialog({ open, framework, onClose }) {
   const runningTasks = tasks.filter((task) =>
     ["TASK_RUNNING", "TASK_STAGING", "TASK_STARTING"].includes(task?.state)
   );
-  const previewTasks = frameworkTaskPreview(tasks);
+
   const filteredTasks = filterFrameworkTasks(tasks, taskSearch);
   const roles = frameworkRoles(framework);
   const capabilities = Array.isArray(framework?.capabilities) ? framework.capabilities : [];
@@ -160,12 +159,13 @@ export default function FrameworkDetailsDialog({ open, framework, onClose }) {
                 <Typography variant="h6" fontWeight={700}>Running tasks</Typography>
                 <Button variant="outlined" onClick={() => setAllTasksOpen(true)}>View all tasks</Button>
               </Stack>
-              {previewTasks.length ? (
-                <Box style={{ maxHeight: 520, overflowY: "auto" }}>
+              {runningTasks.length ? (
+                <Box>
                   <TasksTable
-                    tasks={previewTasks}
-                    title={`Running tasks (${previewTasks.length} of ${runningTasks.length})`}
+                    tasks={runningTasks}
+                    title={`Running tasks (${runningTasks.length})`}
                     showFrameworkId={false}
+                    pageSize={10}
                   />
                 </Box>
               ) : (

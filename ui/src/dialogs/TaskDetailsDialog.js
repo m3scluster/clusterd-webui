@@ -31,6 +31,7 @@ import SandboxDialog from "./SandboxDialog";
 import { agentHttpEndpoint, latestTaskContainerId } from "../logs/logApi";
 import { StateBadge } from "../libs/functions";
 import { useAuth } from "../auth/AuthContext";
+import { PAGE_SIZE, PaginationControls, pageCountFor } from "../components/PaginationControls";
 import {
   formatTaskResource,
   formatTaskTimestamp,
@@ -82,10 +83,15 @@ export default function TaskDetailsDialog({ open, task, onClose }) {
   const [relatedAgent, setRelatedAgent] = React.useState(null);
   const [sandboxOpen, setSandboxOpen] = React.useState(false);
   const [executorName, setExecutorName] = React.useState(null);
+  const [statusPage, setStatusPage] = React.useState(1);
 
   const statuses = sortTaskStatuses(task?.statuses);
   const advanced = taskAdvancedDetails(task);
   const latestState = task?.state || statuses.at(-1)?.state || EMPTY;
+  const statusPageCount = pageCountFor(statuses.length);
+  const pagedStatuses = statuses.slice((statusPage - 1) * PAGE_SIZE, statusPage * PAGE_SIZE);
+
+  React.useEffect(() => setStatusPage((current) => Math.min(current, statusPageCount)), [statusPageCount]);
 
   const canReadLogs = Boolean(task?._agent && latestTaskContainerId(task));
   const canOpenShell = canReadLogs && Boolean(task?._agent?.hostname && task?._agent?.port);
@@ -226,7 +232,7 @@ export default function TaskDetailsDialog({ open, task, onClose }) {
                   <Table size="small" aria-label="Task status history">
                     <TableHead><TableRow><TableCell>Time</TableCell><TableCell>State</TableCell><TableCell>Health</TableCell><TableCell>Message</TableCell></TableRow></TableHead>
                     <TableBody>
-                      {statuses.map((status, index) => (
+                      {pagedStatuses.map((status, index) => (
                         <TableRow key={`${status.timestamp || "unknown"}-${index}`}>
                           <TableCell sx={{ whiteSpace: "nowrap" }}>{formatTaskTimestamp(status.timestamp)}</TableCell>
                           <TableCell>{status.state?.replace("TASK_", "") || EMPTY}</TableCell>
@@ -236,6 +242,7 @@ export default function TaskDetailsDialog({ open, task, onClose }) {
                       ))}
                     </TableBody>
                   </Table>
+                  <PaginationControls page={statusPage} pageCount={statusPageCount} onPageChange={setStatusPage} />
                 </Paper>
               ) : <Typography color="text.secondary">No status history available.</Typography>}
             </Box>
