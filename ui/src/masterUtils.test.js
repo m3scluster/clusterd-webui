@@ -41,6 +41,12 @@ const mockStateData = {
   cluster: 'test-cluster'
 };
 
+const mockClusterState = {
+  ...mockStateData,
+  masters: [mockMasterA, mockMasterB, { ...mockMasterA, id: 'master-c-id', hostname: 'master-c.example.com' }],
+  leader_info: { id: 'master-a-id' },
+};
+
 describe('Master Utility Functions', () => {
   test('isLeader correctly identifies the leader', () => {
     expect(isLeader(mockMasterA, 'master-a-id')).toBe(true);
@@ -67,6 +73,13 @@ describe('Master Utility Functions', () => {
     expect(clusterInfo.version).toBe('1.8.0');
     expect(clusterInfo.masterCount).toBe(1);
     expect(clusterInfo.isLeader).toBe(true);
+  });
+
+  test('formatClusterInfo lists every manager, including the leader', () => {
+    const clusterInfo = formatClusterInfo(mockClusterState);
+
+    expect(clusterInfo.masters.map((master) => master.id)).toEqual(['master-a-id', 'master-b-id', 'master-c-id']);
+    expect(clusterInfo.masterCount).toBe(3);
   });
 
   test('builds a safe master metrics endpoint from hostname and pid port', () => {

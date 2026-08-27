@@ -40,13 +40,16 @@ export function getMasterStatus(master, currentLeaderId) {
  * @returns {Array} List of master objects with normalized information
  */
 export function extractMasters(stateData) {
-  // In standard Mesos, the masters array is likely in stateData.masters or stateData.cluster_info.masters
-  // For now we'll return the current master and its info if available
-  
-  const masters = [];
-  
-  // Current master information (this may be duplicated in some cases)
-  if (stateData.id && stateData.hostname) {
+  if (!stateData || typeof stateData !== "object") return [];
+
+  const configuredMasters = [
+    stateData.masters,
+    stateData.cluster_info?.masters,
+    stateData.cluster?.masters,
+  ].find(Array.isArray);
+  const masters = configuredMasters || [];
+
+  if (!configuredMasters && stateData.id && stateData.hostname) {
     masters.push({
       id: stateData.id,
       hostname: stateData.hostname,
@@ -54,20 +57,14 @@ export function extractMasters(stateData) {
       version: stateData.version,
       start_time: stateData.start_time,
       elected_time: stateData.elected_time,
-      leader_info: stateData.leader_info
+      leader_info: stateData.leader_info,
     });
   }
-  
-  // Additional masters might be in clusters information if available
-  if (stateData.cluster && Array.isArray(stateData.cluster.masters)) {
-    masters.push(...stateData.cluster.masters);
-  }
-  
-  // For now, we'll just return what's already in state - typically Mesos only provides 
-  // information about the currently contacted master, not all master servers unless
-  // a specific discovery endpoint exists (which is not common in standard distribution)
-  
-  return masters;
+
+  return masters.filter((master, index, allMasters) => {
+    const identity = master?.id || master?.hostname;
+    return identity && allMasters.findIndex((candidate) => (candidate?.id || candidate?.hostname) === identity) === index;
+  });
 }
 
 /**
@@ -78,25 +75,18 @@ export function extractMasters(stateData) {
 export function formatClusterInfo(stateData) {
   if (!stateData) return null;
   
-  // If we don't have a full master list, we'll just show the current master data
+  const currentLeaderId = stateData.leader_info?.id || null;
   const masters = extractMasters(stateData);
-  
-  // Get first valid master (current one) to extract general information
-  let currentMaster = null;
-  if (masters.length > 0) {
-    // Find the master that matches current state context or just use the first one
-    currentMaster = masters[0];
-  }
   
   return {
     cluster: stateData.cluster || 'unknown',
     version: stateData.version || 'unknown',
     startTime: stateData.start_time ? new Date(stateData.start_time * 1000).toISOString() : null,
     leader: stateData.leader || null,
-    currentLeaderId: stateData.leader_info?.id || null,
+    currentLeaderId,
     masters: masters,
     masterCount: masters.length,
-    isLeader: currentMaster && stateData.id === (stateData.leader_info?.id || null)
+    isLeader: String(stateData.id) === String(currentLeaderId)
   };
 }
 

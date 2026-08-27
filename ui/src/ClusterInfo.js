@@ -110,9 +110,9 @@ export default function ClusterInfo() {
                   <Typography color="text.secondary" variant="caption">Manager Servers ({clusterInfo.masterCount})</Typography>
                   <Typography color="text.secondary" variant="body2" sx={{ mt: 0.5 }}>Click a manager to view its details.</Typography>
                   <Box sx={{ mt: 1 }}>
-                    {clusterInfo.masters.map((master, index) => (
+                    {clusterInfo.masters.map((master) => (
                       <Paper
-                        key={index}
+                        key={master.id || master.hostname}
                         elevation={0}
                         onClick={() => setSelectedMaster({ ...master, isLeader: clusterInfo.currentLeaderId === master.id })}
                         role="button"
