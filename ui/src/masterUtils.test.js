@@ -82,6 +82,24 @@ describe('Master Utility Functions', () => {
     expect(clusterInfo.masterCount).toBe(3);
   });
 
+  test('extractMasters includes the leader and all followers from manager state', () => {
+    const masters = extractMasters({
+      id: 'leader-id',
+      hostname: 'leader.example.com',
+      pid: 'master@leader.example.com:5050',
+      port: 5050,
+      leader_info: { id: 'leader-id' },
+      followers: [
+        { id: 'follower-a-id', pid: 'master@follower-a.example.com:5050', port: 5050, hostname: 'follower-a.example.com' },
+        { id: 'follower-b-id', pid: 'master@follower-b.example.com:5050', port: 5050, hostname: 'follower-b.example.com' },
+      ],
+    });
+
+    expect(masters.map((master) => master.id)).toEqual(['leader-id', 'follower-a-id', 'follower-b-id']);
+    expect(masters[0]).toMatchObject({ hostname: 'leader.example.com', port: 5050 });
+    expect(masters[1]).toMatchObject({ hostname: 'follower-a.example.com', port: 5050 });
+  });
+
   test('builds a safe master metrics endpoint from hostname and pid port', () => {
     expect(masterHttpEndpoint({ hostname: 'master-a.example.com', pid: 'master@master-a.example.com:5050' }, '/metrics/snapshot', 'development'))
       .toBe('/master-api/master-a.example.com/5050/metrics/snapshot');

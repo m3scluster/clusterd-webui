@@ -47,18 +47,23 @@ export function extractMasters(stateData) {
     stateData.cluster_info?.masters,
     stateData.cluster?.masters,
   ].find(Array.isArray);
-  const masters = configuredMasters || [];
+  const masters = configuredMasters ? [...configuredMasters] : [];
 
-  if (!configuredMasters && stateData.id && stateData.hostname) {
-    masters.push({
+  if (stateData.id && stateData.hostname) {
+    masters.unshift({
       id: stateData.id,
       hostname: stateData.hostname,
       pid: stateData.pid,
+      port: stateData.port,
       version: stateData.version,
       start_time: stateData.start_time,
       elected_time: stateData.elected_time,
       leader_info: stateData.leader_info,
     });
+  }
+
+  if (Array.isArray(stateData.followers)) {
+    masters.push(...stateData.followers);
   }
 
   return masters.filter((master, index, allMasters) => {
