@@ -1,4 +1,4 @@
-import { flattenOffers } from "./Offers";
+import { flattenOffers, loadOffers } from "./Offers";
 
 describe("flattenOffers", () => {
   test("flattens framework offers and enriches framework and agent metadata", () => {
@@ -26,6 +26,24 @@ describe("flattenOffers", () => {
       framework_id: "framework-1",
       framework_name: "—",
       hostname: "—",
+    }]);
+  });
+
+  test("loads framework offers from the framework endpoint and enriches them with agents", async () => {
+    const request = jest.fn()
+      .mockResolvedValueOnce({ frameworks: [{ id: "framework-1", offers: [{ id: "offer-1", slave_id: "agent-1" }] }] })
+      .mockResolvedValueOnce({ slaves: [{ id: "agent-1", hostname: "agent.example" }] });
+
+    const state = await loadOffers(request);
+
+    expect(request).toHaveBeenNthCalledWith(1, "/frameworks?order=dsc&limit=-1");
+    expect(request).toHaveBeenNthCalledWith(2, "/slaves");
+    expect(flattenOffers(state)).toEqual([{
+      id: "offer-1",
+      slave_id: "agent-1",
+      framework_id: "framework-1",
+      framework_name: "—",
+      hostname: "agent.example",
     }]);
   });
 });

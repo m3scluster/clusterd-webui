@@ -22,13 +22,23 @@ export function flattenOffers(state) {
   });
 }
 
+export async function loadOffers(request) {
+  const [frameworkData, agentData] = await Promise.all([
+    request("/frameworks?order=dsc&limit=-1"),
+    request("/slaves"),
+  ]);
+
+  return {
+    frameworks: frameworkData?.frameworks ?? [],
+    slaves: agentData?.slaves ?? [],
+  };
+}
+
 const useMesosOffers = (request, authenticated) => {
   return useQuery({
     queryKey: ["mesosOffers", authenticated],
     enabled: authenticated,
-    queryFn: async () => {
-      return request("/state");
-    },
+    queryFn: () => loadOffers(request),
     refetchInterval: 5000,
     staleTime: 4000,
     keepPreviousData: true,
